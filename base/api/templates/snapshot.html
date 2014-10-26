@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% load compressed %}
+{% block moreStyles %}{% compressed_css 'snapshot' %}{% endblock %}
+{% block moreScripts %}{% compressed_js "volume_libs" %}{% endblock %}
+{% block head_title %}{{ _("Folder snapshots") }}{% endblock %}
+{% block navbar_class %}{% endblock %}
+{% block navbar %}
+  {% include "_top_bar.html" %}
+{% endblock %}
+
+
+{% block body %}
+<div class="container">
+  <div class="row-fluid">
+    {% include "sidebar.html" %}
+    <div class="span9 main-content">
+      {% with "volume:volume_"|add:folder_type as back_url %}
+      <div class="content-header-path"><a href={% url back_url %}>{{folder_type|upper}} {{ _("Shared Folder") }}</a> > {{ folder_name }}</div>
+      {% endwith %}
+      <h3 class="content-header"><img src="/static/img/ArkExpress_folder_icon.png"> {{ folder_name }}</h3>
+      <div class="row-fluid">
+        <div class="snapshot_top">
+          <button id="add_snapshot" class="btn btn-small btn-hopebay" title="{{ _("Take snapshot now") }}"><i class="fa fa-camera fa-lg"></i></button>
+          <a href="{% url 'volume:calendar' folder_type=folder_type folder_name=folder_name %}" class="btn btn-icon btn-small btn-hopebay" title="{{ _("Set up snapshot schedule") }}"><span class="hopebay-icon btn-icon-schedule"></a>
+            <div class="control-group pull-right form form-horizontal form-hopebay">
+              <label class="control-label snapshot-period">{{ _("Snapshots are automatically deleted") }}:</label>
+              <div class="controls snapshot-period">
+                <select id="preserve_period" style="width:100%">
+                  <option value="1">{{ _("every 1 day") }}</option>
+                  <option value="2">{{ _("every 2 days") }}</option>
+                  <option value="3">{{ _("every 3 days") }}</option>
+                  <option value="5">{{ _("every 5 days") }}</option>
+                  <option value="7">{{ _("every 1 week") }}</option>
+                  <option value="14">{{ _("every 2 weeks") }}</option>
+                  <option value="21">{{ _("every 3 weeks") }}</option>
+                  <option value="30">{{ _("every 1 month") }}</option>
+                  <option value="60">{{ _("every 2 months") }}</option>
+                  <option value="90">{{ _("every 3 months") }}</option>
+                </select>
+              </div>
+            </div>
+        </div>
+        <div class="snapshot_description">
+          <p>{{ _("Creating the snapshot of a shared folder is free from any upload bandwidth limitations (if any), and thus the local cache will be immediately uploaded to the cloud space.") }}</p>
+        </div>
+      </div>
+
+      <div class="row-fluid">
+        <div class="span12" data-role="content">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th class="span1">{{ _("Export") }}</th>
+                <th class="span3"> {{ _("Completion Time") }} </th>
+                <th class="span2"> {{ _("Usage") }} </th>
+                <th class="span1" style="white-space:nowrap;"> {{ _("Status") }} </th>
+                <th class="span3"> {{ _("Path") }} </th>
+                <th class="span1"> {{ _("Options") }} </th>
+              </tr>
+            </thead>
+            <tbody id="snapshot_body">
+              <tr>
+                <td colspan=7>
+                  <h4 class="text-center"><i class="fa fa-cog fa-spin"></i>&nbsp;{{ _("Loading...") }}</h4>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div style="margin: 5px 0px 0px 20px">
+              {% with "volume:volume_"|add:folder_type as back_url %}
+              <a href="{% url back_url %}" class="btn btn-small btn-hopebay">{{ _("Back") }}</a>
+              {% endwith %}
+          </div>
+        </div>
+        <!-- span 12 -->
+      </div>
+      <!-- row fluid -->
+    </div>
+    <!-- span 9 -->
+  </div>
+  <!-- row fluid -->
+</div>
+<!-- container -->
+
+<div id="modal-confirm" class="modal hide fade">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <h3>{{ _("Information") }}</h3>
+  </div>
+  <div class="modal-body">
+    <input type="hidden" name="target-id" id="target-id">
+    <p id="confirm-content"></p>
+    <span id="target-name"></span>
+  </div>
+  <div class="modal-footer">
+    <button id="confirm-btn" class="btn btn-small btn-hopebay">{{ _("Apply") }}</button>
+    <button class="btn btn-small" data-dismiss="modal" aria-hidden="true">{{ _("Cancel") }}</button>
+  </div>
+</div>
+
+<div id="modal-delete-snapshot" class="modal hide fade">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <h3>{{ _("Delete Snapshot") }}</h3>
+  </div>
+  <div class="modal-body">
+    <input type="hidden" name="delete-target" id="delete-target">
+    {% if data.folder_settings.for_smallfiles %}
+    <p>{{ _("This snapshot of all optimzed folders will be permanently deleted. Are you sure to continue?") }}</p>
+    {% else %}
+    <p>{{ _("This snapshot will be permanently deleted. Are you sure to continue?") }}</p>
+    {% endif %}
+  </div>
+  <div class="modal-footer">
+    <label type="checkbox">
+      <input type="checkbox" name="purge">
+      {{ _("Yes, I understand the risks.") }}
+    </label>
+    <button id="delete-btn" class="btn btn-small btn-danger">{{ _("Delete") }}</button>
+    <button class="btn btn-small" data-dismiss="modal" aria-hidden="true">{{ _("Cancel") }}</button>
+  </div>
+</div>
+
+{% if folder_type == 'nfs'%}
+<div class="hide" id="folder_dialog" title="{{ _("Mount point") }}">
+    <div>
+        {{ folder_type | upper }} {{ _("path") }}:
+        <button class="copy-button pull-right" id="copy-button-snapshot" title={{ _("copy to clipboard") }} data-clipboard-target="folder_path"><i class="fa fa-clipboard"></i></button>
+        <input type="text" id="folder_path" class="input-block-level" readonly/>
+    </div>
+</div>
+{% elif folder_type == 'cifs' %}
+<div class="hide" id="folder_dialog" title="{{ _("Mount point") }}">
+    <div>
+        {{ _("Windows (Explorer)") }}:
+        <button class="copy-button pull-right" id="copy-button-win" title={{ _("copy to clipboard") }} data-clipboard-target="folder_path"><i class="fa fa-clipboard"></i></button>
+        <input type="text" id="folder_path" class="input-block-level" readonly/>
+    </div>
+    <div style="margin-top: 10px;">
+        {{ _("Mac OS X (Finder)") }}:
+        <button class="copy-button pull-right" id="copy-button-mac" title={{ _("copy to clipboard") }} data-clipboard-target="folder_path_mac"><i class="fa fa-clipboard"></i></button>
+        <input type="text" id="folder_path_mac" class="input-block-level" readonly/>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_script %}
+<script>
+var translate = {
+    'ip': "{{ data.ip }}",
+    'folder_type': "{{ folder_type }}",
+    'is_optimize': "{{ data.folder_settings.for_smallfiles }}",
+    'preserve_period': "{{ data.folder_settings.snap_ttl }}",
+    'snapshot_table_url': "{% url 'volume:snapshot_table' folder_type=folder_type folder_name=folder_name%}",
+    'snapshot_info_url': "{% url 'volume:snapshot_info' folder_type=folder_type folder_name=folder_name%}",
+    'add_snapshot_url': "{% url 'volume:add_snapshot' folder_type=folder_type folder_name=folder_name%}",
+    'remove_snapshot_url': "{% url 'volume:remove_snapshot' folder_type=folder_type folder_name=folder_name%}",
+    'toggle_snapshot_url': "{% url 'volume:toggle_snapshot' folder_type=folder_type folder_name=folder_name%}",
+    'preserve_period_url': "{% url 'volume:preserve_period' folder_type=folder_type folder_name=folder_name%}",
+    'add_snapshot_confirm_msg': "{{ _(" All optimized folders will always take snapshot. ") }}",
+    'add_snapshot_confirm_alert_msg': "{{ _(" Small-file optimization folders are found. So, the system must temporarily stop CIFS and NFS services. Continue? ") }}",
+    'taking_msg': "{{ _("Taking snapshot") }}",
+    'take_msg': "{{ _("Take snapshot now") }}",
+    'taking_success': "{{ _("The snapshot is created") }}",
+    'deleting_success': "{{ _("The snapshot is deleted") }}"
+}
+
+function __(str){
+    return translate[str]
+}
+</script>
+{% compressed_js "volume_snapshot" %}
+{% endblock %}

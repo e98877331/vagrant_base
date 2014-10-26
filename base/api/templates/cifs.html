@@ -1,0 +1,512 @@
+{% extends "base.html" %}{% load compressed %}
+{% block moreStyles %}{% compressed_css 'volume' %}{% endblock %}
+{% block moreScripts %}{% compressed_js "volume_libs" %}{% endblock %}
+{% block head_title %}{{ _("Volume Export") }}{% endblock %}
+{% block navbar_class %}{% endblock %}
+{% block navbar %}
+  {% include "_top_bar.html" %}
+{% endblock %}
+{% block body %}
+
+<!-- Modal -->
+<div id="modal-add-cifs" class="modal hide fade">
+  <form method="POST" id="form-add-cifs" action="{% url 'volume:volume_cifs_create' %}" class="form form-horizontal form-hopebay">
+    {% csrf_token %}
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+      <h3>{{ _("Create New CIFS Folder") }}</h3>
+    </div>
+    <div class="modal-body">
+      <div class="control-group">
+        <label for="modal_add_folder_name" class="control-label">{{ _("Folder name") }}:</label>
+        <div class="controls">
+            <input id="modal_add_folder_name" class="folder_name folder_unique" type="text" name="folder_name" placeholder="{{ _("1 to 100 characters") }}" minlength="1" maxlength="100" required autofocus>
+        </div>
+      </div>
+
+      <div class="control-group" id="user-group-add-acl" style="margin-top: 10px;">
+        <!--Table-->
+        <table id="table_cifs_adgroups_add" class="table table-striped">
+         <thead>
+         <tr>
+                  <th class="span6"> {{ _("Group") }} </th>
+                  <th class="span2" style="text-align: center;">
+                      {{ _("RO") }}  <input name="select_all_adgroups_add" value='RO' type="checkbox">
+                  </th>
+                  <th class="span2" style="text-align: center;">
+                      {{ _("RW") }}  <input name="select_all_adgroups_add" value='RW' type="checkbox">
+                  </th>
+                  <th class="span2" style="text-align: center;">
+                      {{ _("Deny") }}  <input name="select_all_adgroups_add" value='DE' type="checkbox">
+                  </th>
+              </tr>
+          </thead>
+          <tbody>
+          {% for group in cifs_adgroups %}
+          <tr>
+              <td class="span6" data-toggle="tooltip" title="{{ group.groupname }}"> <img src="/static/img/ArkExpress_CIFS_group_icon.png"> {{ group.groupname | truncatechars:25}} </td>
+              <td class="span2" style="text-align: center;"> <input type="checkbox" id="adgroup_{{ group.groupname }}_RO" name="adgroup_{{ group.groupname }}" value="RO"> </td>
+              <td class="span2" style="text-align: center;"> <input type="checkbox" id="adgroup_{{ group.groupname }}_RW" name="adgroup_{{ group.groupname }}" value="RW"> </td>
+              <td class="span2" style="text-align: center;"> <input type="checkbox" id="adgroup_{{ group.groupname }}_DE" name="adgroup_{{ group.groupname }}" value="DE"> </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        <table id="table_cifs_adusers_add" class="table table-striped">
+          <thead>
+              <tr>
+                  <th class="span6"> {{ _("User") }} </th>
+                  <th class="span2" style="text-align: center;"> 
+                      {{ _("RO") }} <input name="select_all_adusers_add" value='RO' type="checkbox">
+                  </th>
+                  <th class="span2" style="text-align: center;"> 
+                      {{ _("RW") }} <input name="select_all_adusers_add" value='RW' type="checkbox">
+                  </th>
+                  <th class="span2" style="text-align: center;">
+                      {{ _("Deny") }} <input name="select_all_adusers_add" value='DE' type="checkbox"> 
+                  </th>
+              </tr>
+          </thead>
+          <tbody>
+          {% for user in cifs_adusers %}
+          <tr>
+              <td class="span6" data-toggle="tooltip" title="{{ user.username }}"> <img src="/static/img/ArkExpress_CIFS_user_icon.png"> {{ user.username | truncatechars:25}} </td>
+              <td class="span2" style="text-align: center;"> <input type="checkbox" id="aduser_{{ user.username }}_RO" name="aduser_{{ user.username }}" value="RO"> </td>
+              <td class="span2" style="text-align: center;"> <input type="checkbox" id="aduser_{{ user.username }}_RW" name="aduser_{{ user.username }}" value="RW"> </td>
+              <td class="span2" style="text-align: center;"> <input type="checkbox" id="aduser_{{ user.username }}_DE" name="aduser_{{ user.username }}" value="DE"> </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        <table id="table_cifs_groups_add" class="table table-striped">
+          <thead>
+              <tr>
+                  <th class="span6"> {{ _("Group") }} </th>
+                  <th class="span2" style="text-align: center;"> 
+                      {{ _("RO") }} <input name="select_all_groups_add" value='RO' type="checkbox">
+                  </th>
+                  <th class="span2" style="text-align: center;"> 
+                      {{ _("RW") }} <input name="select_all_groups_add" value='RW' type="checkbox">
+                  </th>
+                  <th class="span2" style="text-align: center;"> 
+                      {{ _("Deny") }} <input name="select_all_groups_add" value='DE' type="checkbox">
+                  </th>
+              </tr>
+          </thead>
+          <tbody>
+          {% for group in cifs_groups %}
+          <tr>
+              <td class="span6" data-toggle="tooltip" title="{{ group.groupname }}"> <img src="/static/img/ArkExpress_CIFS_group_icon.png"> {{ group.groupname | truncatechars:25}} </td>
+              <td class="span2" style="text-align: center;"> <input type="checkbox" id="group_{{ group.groupname }}_RO" name="group_{{ group.groupname }}" value="RO"> </td>
+              <td class="span2" style="text-align: center;"> <input type="checkbox" id="group_{{ group.groupname }}_RW" name="group_{{ group.groupname }}" value="RW"> </td>
+              <td class="span2" style="text-align: center;"> <input type="checkbox" id="group_{{ group.groupname }}_DE" name="group_{{ group.groupname }}" value="DE"> </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        <table id="table_cifs_users_add" class="table table-striped">
+          <thead>
+              <tr>
+                  <th class="span6"> {{ _("User") }} </th>
+                  <th class="span2" style="text-align: center;">
+                    {{ _("RO") }} <input name="select_all_users_add" value='RO' type="checkbox">
+                  </th>
+                  <th class="span2" style="text-align: center;"> 
+                    {{ _("RW") }} <input name="select_all_users_add" value='RW' type="checkbox">
+                  </th>
+                  <th class="span2" style="text-align: center;"> 
+                      {{ _("Deny") }} <input name="select_all_users_add" value='DE' type="checkbox">
+                  </th>
+              </tr>
+          </thead>
+          <tbody>
+          {% for user in cifs_users %}
+          <tr>
+              <td class="span6" data-toggle="tooltip" title="{{ user.username }}"> <img src="/static/img/ArkExpress_CIFS_user_icon.png"> {{ user.username | truncatechars:25}} </td>
+              <td class="span2" style="text-align: center;"> <input type="checkbox" id="user_{{ user.username }}_RO" name="user_{{ user.username }}" value="RO"> </td>
+              <td class="span2" style="text-align: center;"> <input type="checkbox" id="user_{{ user.username }}_RW" name="user_{{ user.username }}" value="RW"> </td>
+              <td class="span2" style="text-align: center;"> <input type="checkbox" id="user_{{ user.username }}_DE" name="user_{{ user.username }}" value="DE"> </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    <div id="table_cifs_submit_add" style="display: none;"></div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="submit" id="add-cifs-submit" class="btn btn-small btn-hopebay">{{ _("Apply") }}</button>
+      <button class="btn btn-small" data-dismiss="modal" aria-hidden="true">{{ _("Cancel") }}</button>
+    </div>
+  </form>
+</div>
+
+<div id="modal-mod-cifs" class="modal hide fade">
+  <form method="POST" id="form-edit-cifs" action="{% url 'volume:volume_cifs_edit' %}" class="form form-horizontal form-hopebay">
+    {% csrf_token %}
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+      <h3>{{ _("Modify CIFS Folder") }}</h3>
+    </div>
+    <div class="modal-body">
+      <div class="control-group">
+        <label for="modal_edit_folder_name" class="control-label">{{ _("Folder name") }}:</label>
+        <div class="controls">
+          <input id="modal_edit_folder_name" type="text" name="folder_name" readonly>
+        </div>
+      </div>
+
+      <div class="control-group" id="user-group-mod-acl" style="margin-top: 10px;">
+        <!--Table-->
+        <table id="table_cifs_adgroups_mod" class="table table-striped">
+         <thead>
+         <tr>
+                  <th class="span6"> {{ _("Group") }} </th>
+                  <th class="span2" style="text-align: center;"> 
+                      {{ _("RO") }} <input name="select_all_adgroups_mod" value='RO' type="checkbox">
+                  </th>
+                  <th class="span2" style="text-align: center;"> 
+                      {{ _("RW") }} <input name="select_all_adgroups_mod" value='RW' type="checkbox">
+                  </th>
+                  <th class="span2" style="text-align: center;"> 
+                      {{ _("Deny") }} <input name="select_all_adgroups_mod" value='DE' type="checkbox">
+                  </th>
+              </tr>
+          </thead>
+          <tbody>
+          {% for group in cifs_adgroups %}
+          <tr>
+              <td class="span6" data-toggle="tooltip" title="{{ group.groupname }}"> <img src="/static/img/ArkExpress_CIFS_group_icon.png"> {{ group.groupname | truncatechars:25}} </td>
+              <td class="span2" style="text-align: center;"> <input type="checkbox" id="adgroup_{{ group.groupname }}_RO" name="adgroup_{{ group.groupname }}" value="RO"> </td>
+              <td class="span2" style="text-align: center;"> <input type="checkbox" id="adgroup_{{ group.groupname }}_RW" name="adgroup_{{ group.groupname }}" value="RW"> </td>
+              <td class="span2" style="text-align: center;"> <input type="checkbox" id="adgroup_{{ group.groupname }}_DE" name="adgroup_{{ group.groupname }}" value="DE"> </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        <table id="table_cifs_adusers_mod" class="table table-striped">
+          <thead>
+              <tr>
+                  <th class="span6"> {{ _("User") }} </th>
+                  <th class="span2" style="text-align: center;"> 
+                      {{ _("RO") }} <input name="select_all_adusers_mod" value='RO' type="checkbox">
+                  </th>
+                  <th class="span2" style="text-align: center;">
+                      {{ _("RW") }} <input name="select_all_adusers_mod" value='RW' type="checkbox">
+                  </th>
+                  <th class="span2" style="text-align: center;"> 
+                      {{ _("Deny") }} <input name="select_all_adusers_mod" value='DE' type="checkbox">
+                  </th>
+              </tr>
+          </thead>
+          <tbody>
+          {% for user in cifs_adusers %}
+          <tr>
+              <td class="span6" data-toggle="tooltip" title="{{ user.username }}"> <img src="/static/img/ArkExpress_CIFS_user_icon.png"> {{ user.username | truncatechars:25}} </td>
+              <td class="span2" style="text-align: center;"> <input type="checkbox" id="aduser_{{ user.username }}_RO" name="aduser_{{ user.username }}" value="RO"> </td>
+              <td class="span2" style="text-align: center;"> <input type="checkbox" id="aduser_{{ user.username }}_RW" name="aduser_{{ user.username }}" value="RW"> </td>
+              <td class="span2" style="text-align: center;"> <input type="checkbox" id="aduser_{{ user.username }}_DE" name="aduser_{{ user.username }}" value="DE"> </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        <table id="table_cifs_groups_mod" class="table table-striped">
+          <thead>
+              <tr>
+                  <th class="span6"> {{ _("Group") }} </th>
+                  <th class="span2" style="text-align: center;"> 
+                      {{ _("RO") }} <input name="select_all_groups_mod" value='RO' type="checkbox">
+                  </th>
+                  <th class="span2" style="text-align: center;">
+                      {{ _("RW") }} <input name="select_all_groups_mod" value='RW' type="checkbox">
+                  </th>
+                  <th class="span2" style="text-align: center;">
+                      {{ _("Deny") }} <input name="select_all_groups_mod" value='DE' type="checkbox">
+                  </th>
+              </tr>
+          </thead>
+          <tbody>
+          {% for group in cifs_groups %}
+          <tr>
+              <td class="span6" data-toggle="tooltip" title="{{ group.groupname }}"> <img src="/static/img/ArkExpress_CIFS_group_icon.png"> {{ group.groupname | truncatechars:25}} </td>
+              <td class="span2" style="text-align: center;"> <input type="checkbox" id="group_{{ group.groupname }}_RO" name="group_{{ group.groupname }}" value="RO"> </td>
+              <td class="span2" style="text-align: center;"> <input type="checkbox" id="group_{{ group.groupname }}_RW" name="group_{{ group.groupname }}" value="RW"> </td>
+              <td class="span2" style="text-align: center;"> <input type="checkbox" id="group_{{ group.groupname }}_DE" name="group_{{ group.groupname }}" value="DE"> </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        <table id="table_cifs_users_mod" class="table table-striped">
+          <thead>
+              <tr>
+                  <th class="span6"> {{ _("User") }} </th>
+                  <th class="span2" style="text-align: center;"> 
+                    {{ _("RO") }} <input name="select_all_users_mod" value='RO' type="checkbox">
+                  </th>
+                  <th class="span2" style="text-align: center;">
+                      {{ _("RW") }} <input name="select_all_users_mod" value='RW' type="checkbox">
+                  </th>
+                  <th class="span2" style="text-align: center;">
+                      {{ _("Deny") }} <input name="select_all_users_mod" value='DE' type="checkbox">
+                  </th>
+              </tr>
+          </thead>
+          <tbody>
+          {% for user in cifs_users %}
+          <tr>
+              <td class="span6" data-toggle="tooltip" title="{{ user.username }}"> <img src="/static/img/ArkExpress_CIFS_user_icon.png"> {{ user.username | truncatechars:25}} </td>
+              <td class="span2" style="text-align: center;"> <input type="checkbox" id="user_{{ user.username }}_RO" name="user_{{ user.username }}" value="RO"> </td>
+              <td class="span2" style="text-align: center;"> <input type="checkbox" id="user_{{ user.username }}_RW" name="user_{{ user.username }}" value="RW"> </td>
+              <td class="span2" style="text-align: center;"> <input type="checkbox" id="user_{{ user.username }}_DE" name="user_{{ user.username }}" value="DE"> </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+        <div id="table_cifs_submit_mod" style="display: none"></div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button type="submit" id="edit-cifs-submit" class="btn btn-small btn-hopebay">{{ _("Apply") }}</button>
+      <button class="btn btn-small" data-dismiss="modal" aria-hidden="true">{{ _("Cancel") }}</button>
+    </div>
+  </form>
+</div>
+
+<div id="modal-delete-cifs" class="modal hide fade">
+  <form id="form-remove-cifs" method="POST" action="{% url 'volume:volume_cifs_remove' %}" class="form form-horizontal form-hopebay">
+  {% csrf_token %}
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <h3>{{ _("Delete Shared Folder") }}</h3>
+  </div>
+  <div class="modal-body">
+    <input type="hidden" name="folder_name" id="delete-target">
+    <p>{{ _("All data under this folder (<b></b>) will be permanently deleted. Are you sure to continue?") }}</p>
+  </div>
+  <div class="modal-footer">
+    <label type="checkbox">
+      <input type="checkbox" name="purge">
+      {{ _("Yes, I understand the risks.") }}
+    </label>
+    <button type="submit" class="btn btn-small btn-danger delete-btn">{{ _("Delete") }}</button>
+    <button class="btn btn-small btn-hopebay" data-dismiss="modal" aria-hidden="true">{{ _("No") }}</button>
+  </div>
+  </form>
+</div>
+
+<div id="modal-alert-nas" class="modal hide fade">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <h3>{{ _("Delete External Folder") }}</h3>
+  </div>
+  <div class="modal-body">
+      <p><i class="fa fa-info-circle fa-lg"></i> {{ _("This shared folder is imported from NAS, if you would like to remove it, please remove its backup job on ") }}<a href="/backup_services/nas_backup/#/backup_services/nas_backup/">NAS Backup</a>.</p>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-small btn-hopebay" data-dismiss="modal" aria-hidden="true">{{ _("OK") }}</button>
+  </div>
+</div>
+
+<div id="modal-alert-rsync" class="modal hide fade">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <h3>{{ _("Delete External Folder") }}</h3>
+  </div>
+  <div class="modal-body">
+      <p><i class="fa fa-info-circle fa-lg"></i> {{ _("This shared folder is for rsync services, if you would like to remove it, please remove its service on ") }}<a href="/backup_services/rsync_server/#/backup_services/rsync_server/">Rsync Server</a>.</p>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-small btn-hopebay" data-dismiss="modal" aria-hidden="true">{{ _("OK") }}</button>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row-fluid">
+    {% include "sidebar.html" %}
+    <div class="span9 main-content">
+      {% include "cifs_bar.html" %}
+      <h3 class="content-header">{{ _("CIFS Shared Folder") }}</h3>
+
+      <div class="row-fluid">
+        <div class="span12" data-role="content">
+          <table id="cifs_export" class="table table-hover">
+            <thead>
+              <tr>
+                <th class="span1" style="white-space: nowrap;">{{ _("Export") }}</th>
+                <th class="span4 table">{{ _("Folder Name") }}</th>
+                <th class="span3">{{ _("Used Space") }}</th>
+                <th class="span1" style="white-space: nowrap;">{{ _("Tags") }}</th>
+                <th class="span3">{{ _("Options") }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if cifs_exports %}
+              {% for target in cifs_exports %}
+              <tr>
+                <td class="span1">
+                  {% if target.enabled %}
+                  <input type="checkbox" class="switch-mini" data-id="{{target.folder_name}}" checked />
+                  {% else %}
+                  <input type="checkbox" class="switch-mini" data-id="{{target.folder_name}}" />
+                  {% endif %}
+                </td>
+                <td class="span4 table"> <a href="#" class="folder_link" data-id="{{target.folder_name}}" data-toggle="popover" data-content="{{ _("Click to show mountpoint") }}">{{ target.folder_name | truncatechars:20}}</a> </td>
+                <td class="span3">
+                    {% if target.space_usage >= 0 %}
+                      {{ target.space_usage | filesizeformat }}
+                    {% else %}
+                    <i class="fa fa-minus-circle" data-toggle="popover" data-content="{{ _('Not available') }}"></i>
+                    {% endif %}
+                </td>
+                <td class="span1">
+                    {% if target.for_smallfiles %}
+                    <span class="label" data-toggle="popover" data-content="{{ _("This folder is optimized for small files") }}"> 64K </span>
+                    {% endif %}
+                    {% if target.from_nas %}
+                    <a href="/backup_services/nas_backup/#/backup_services/nas_backup/">
+                      <span class="label" data-toggle="popover" data-content="{{ _("This folder is imported from an external NAS") }}"> NAS </span>
+                    </a>
+                    {% endif %}
+                    {% if target.for_rsync %}
+                    <a href="/backup_services/rsync_server/#/backup_services/rsync_server/">
+                      <span class="label" data-toggle="popover" data-content="{{ _("This folder is for rsync service") }}">RSYNC</span>
+                    </a>
+                    {% endif %}
+                </td>
+                <td class="span3">
+                    <!-- Edit button -->
+                    <a class="btn btn-icon btn-small btn-hopebay edit-dialog-btn"
+                        data-id="{{target.folder_name}}"
+                        data-readonly={% if target.from_nas or target.for_rsync %}"1"{% else %}"0"{% endif %}
+                        data-toggle="popover" data-content="{{ _('Edit') }}">
+                      <span class="hopebay-icon btn-icon-edit">
+                    </a>
+                    <!-- Delete button -->
+                    {% if target.status == "busy" %}
+                    <a class="btn btn-icon btn-small btn-hopebay"
+                        data-toggle="popover" data-content="{{ _("Deleting this folder is not allowed.") }}" disabled>
+                      <span class="hopebay-icon btn-icon-trash">
+                    </a>
+                    {% else %}
+                    <a class="btn btn-icon btn-small btn-hopebay delete-dialog-btn"
+                        data-id="{{target.folder_name}}"
+                        data-for_rsync="{{ target.for_rsync }}"
+                        data-for_nas="{{ target.from_nas }}"
+                        data-toggle="popover" data-content="{{ _('Delete') }}">
+                      <span class="hopebay-icon btn-icon-trash">
+                    </a>
+                    {% endif %}
+                    <!-- snapshot button -->
+                    {% if STARTER_MODE %}
+                    <a class="btn btn-small btn-hopebay"
+                        data-toggle="popover" data-content="{{ _('Not support from starter version') }}" disabled>
+                      <i class="fa fa-camera fa-lg"></i>
+                    </a>
+                    {% else %}
+                    <a class="btn btn-small btn-hopebay"
+                        href="{% url 'volume:snapshot' folder_name=target.folder_name folder_type='cifs' %}"
+                        data-toggle="popover" data-content="{{ _('Snapshot') }}">
+                      <i class="fa fa-camera fa-lg"></i>
+                    </a>
+                    {% endif %}
+                </td>
+                </tr>
+                {% endfor %}
+               {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="hide" id="folder_dialog" title="{{ _("Mount point") }}">
+    <div>
+        {{ _("Folder Name") }}:
+        <span id="full_path" style="font-weight: bold;word-wrap: break-word;"></span>
+    </div>
+    <div>
+        {{ _("Windows (Explorer)") }}:
+        <button class="copy-button pull-right" id="copy-button-win" title="{{ _('copy to clipboard')}}" data-clipboard-target="folder_path"><i class="fa fa-clipboard"></i></button>
+        <input type="text" id="folder_path" class="input-block-level" readonly/>
+    </div>
+    <div style="margin-top: 10px;">
+        {{ _("Mac OS X (Finder)") }}:
+        <button class="copy-button pull-right" id="copy-button-mac" title="{{ _('copy to clipboard')}}" data-clipboard-target="folder_path_mac"><i class="fa fa-clipboard"></i></button>
+        <input type="text" id="folder_path_mac" class="input-block-level" readonly/>
+    </div>
+</div>
+
+{% endblock %}
+{% block extra_script %}
+<script>
+var mode = "{{ cifs_info.mode }}";
+var max_folders = "{{ cifs_info.max_folders }}";
+var cur_folders = "{{ cifs_info.num_folders }}";
+var smbuser_list = [];
+{% if cifs_users %}
+  {% for cifs_user in cifs_users %}
+    smbuser_list.push("{{ cifs_user }}".toLowerCase());
+  {% endfor %}
+{% endif %}
+
+var translate = {
+    volume_cifs_toggle: "{% url 'volume:volume_cifs_toggle' %}",
+    cifs_ip: "\\\\{{ cifs_info.ip }}\\",
+    mac_smb_ip: "smb://{{ cifs_info.ip }}/",
+    init_message: '{{ _("Initializing...") }}',
+    starter_mode: '{{ _("Starter Mode") }}',
+    ext4_not_supported: '{{ _("Optimization for small files is not supported in Starter.") }}',
+    folder_limit: '{{ _("The number of CIFS folders is limited.") }}',
+    yes: '{{ _("Yes") }}',
+    no: '{{ _("No") }}',
+    ok: '{{ _("OK") }}',
+    cancel: '{{ _("Cancel") }}',
+    information_message: '{{ _("Total folder(s):") }} {{ cifs_info.num_folders }}, {{ _("total usage:") }} {{ nfs_info.total_usage | filesizeformat }}',
+    create_folder_tooltip: '{{ _("Create a new folder") }}',
+    switch_tab_tooltip: '{{ _("Total count of RW + RO") }}',
+    empty_message: "{{ _("No data available in table") }}",
+    perms_message: "{{ _("Permission priority: Deny > RW > RO") }}",
+    yes_btn: "{{ _("Yes") }}",
+    no_btn: "{{ _("No") }}",
+    warn_title: "{{ _("Warning") }}",
+    apply_all: "{{ _("This action will apply to all objects") }}",
+}
+
+function __(str){
+    return translate[str]
+}
+
+jQuery.validator.addMethod("folder_name", function(value, element){
+  return this.optional(element) || /^\w[\w\-\.]*$/.test(value);
+}, '{{ _("Please input a valid folder name!") }}');
+
+jQuery.validator.addMethod("folder_unique", function(value, element){
+  var folder_list = [];
+{% if cifs_exports %}
+  {% for cifs_export in cifs_exports %}
+  folder_list.push("{{ cifs_export.folder_name }}".toLowerCase());
+  {% endfor %}
+{% endif %}
+  return this.optional(element) || $.inArray(value.toLowerCase(), folder_list) == -1;
+}, '{{_("This name is already exist.")}}');
+
+/*jQuery.validator.addMethod("new_smbpasswd", function(value, element){
+  return this.optional(element) || /^[A-Za-z0-9]*$/.test(value);
+}, '{{ _("Please input a valid password!") }}');
+
+jQuery.validator.addMethod("new_smbuser", function(value, element){
+  return this.optional(element) || /^[A-Za-z][\w-]*$/.test(value);
+}, '{{ _("Please input a valid username!") }}');
+
+jQuery.validator.addMethod("unique_smbuser", function(value, element){
+  return this.optional(element) || $.inArray(value.toLowerCase(), smbuser_list) == -1;
+}, '{{ _("Please input a new username!") }}');*/
+
+</script>
+{% compressed_js "cifs" %}
+{% include "validate_i18n.html" %}
+{% endblock %}

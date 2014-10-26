@@ -1,0 +1,58 @@
+.input-append input[type="text"] {
+  height:17px;
+  width: 120px;
+  border-right: none;
+}
+
+.input-append button {
+  width: 40px;
+  background-color: #bfbfbf;
+  *background-color: #bfbfbf;
+  border: none;
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ffffff), to(#bfbfbf));
+  background-image: -webkit-linear-gradient(top, #ffffff, #bfbfbf);
+  background-image: -o-linear-gradient(top, #ffffff, #bfbfbf);
+  background-image: linear-gradient(to bottom, #ffffff, #bfbfbf);
+  background-image: -moz-linear-gradient(top, #ffffff, #bfbfbf);
+}
+
+.input-append button:before {
+    display: block;
+    padding-top: 5px;
+    margin-left: 2px;
+    content: url(/static/img/btn_search_default.png);
+}
+
+.input-append button:hover:before {
+    content: url(/static/img/btn_search_over.png);
+}
+
+.input-append button:active:before {
+    content: url(/static/img/btn_search_over.png);
+}
+
+.input-append button:hover {
+  background-position: 0 0;
+  background-color: #a6a6a6;
+  *background-color: #808080;
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#a6a6a6), to(#808080));
+  background-image: -webkit-linear-gradient(top, #a6a6a6, #808080);
+  background-image: -o-linear-gradient(top, #a6a6a6, #bfbfbf);
+  background-image: linear-gradient(to bottom, #a6a6a6, #808080);
+  background-image: -moz-linear-gradient(top, #a6a6a6, #808080);
+}
+
+.input-append button:active {
+  background-position: 0 0;
+  background-color: #46a7d2;
+  *background-color: #4587a3;
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#46a7d2), to(#4587a3));
+  background-image: -webkit-linear-gradient(top, #46a7d2, #4587a3);
+  background-image: -o-linear-gradient(top, #46a7d2, #4587a3);
+  background-image: linear-gradient(to bottom, #46a7d2, #4587a3);
+  background-image: -moz-linear-gradient(top, #46a7d2, #4587a3);
+}
+
+table th input[type="checkbox"] {
+    margin-top: 0px;
+}

@@ -1,0 +1,59 @@
+{% extends "base.html" %}{% load compressed %}
+
+{% load bootstrap_tags %}
+
+{% block moreStyles %}{% compressed_css "volume_cifs_ads" %}{% endblock %}
+
+{% block head_title %}{{ _("Volume Export")}}{% endblock %}
+
+{% block body_class %}home{% endblock %}
+{% block navbar_class %}{% endblock %}
+{% block navbar %}
+    {% include "_top_bar.html" %}
+{% endblock %}
+{% block body %}
+
+<div class="container">
+    <div class="row-fluid">
+        {% include "sidebar.html" %}
+        <div id="content" class="span9 main-content">
+            {% include "cifs_bar.html" %}
+
+            <form method="POST" id="form-cifs-ads" class="form-horizontal">
+                <h3 class="content-header">CIFS {{ _("Active Directory Authentication") }}</h3>
+                {% csrf_token %}
+                <div class="control-group">
+                    <label class="control-label">{{ _("Status") }}:</label>
+                    <div class="controls" style="padding-top: 3px">
+                      <input class="switch-mini" id="ad_enabled" type="checkbox" name="ads_enabled" {% if enabled %}checked{% endif %}>
+                    </div>
+                </div>
+                {{ form|as_bootstrap }}
+                <div class="control-group">
+                  <div class="controls">
+                      <button class="btn btn-small btn-hopebay" type="submit" disabled>{{ _("Apply") }}</button>
+                      <a href="{% url "volume:volume_cifs_ads" %}" class="btn btn-small btn-hopebay">{{ _("Cancel") }}</a>
+                  </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_script%}
+<script>
+var translate = {
+  volume_cifs_ads_toggle: "{% url 'volume:volume_cifs_ads_toggle' %}",
+  form_valid: "{{ valid }}",
+  starter_mode: "{{ STARTER_MODE }}",
+  starter_msg: "{{ _("Starter version do not support AD.") }}",
+}
+
+function __(str){
+    return translate[str]
+}
+</script>
+{% compressed_js "cifs_ads" %}
+{% endblock %}

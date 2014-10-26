@@ -1,0 +1,336 @@
+{% extends "base.html" %}{% load compressed %}
+
+{% block moreStyles %}{% compressed_css "volume_cifs_user" %}{% endblock %}
+{% block moreScripts %}{% compressed_js "volume_libs" %}{% endblock %}
+
+{% block head_title %}{{ _("Volume Export") }}{% endblock %}
+
+<!--<link rel="stylesheet" href="/static/css/table_style.css">
+<link rel="stylesheet" href="/static/css/validation_style.css" type="text/css" />-->
+
+{% block body_class %}home{% endblock %}
+{% block navbar_class %}{% endblock %}
+{% block navbar %}
+    {% include "_top_bar.html" %}
+{% endblock %}
+{% block body %}
+
+<!-- Modal -->
+<div id="modal-add-cifs-user" class="modal hide fade">
+  <form method="POST" id="form-add-cifs-user" action="{% url 'volume:volume_cifs_adduser' %}" class="form form-horizontal form-hopebay">
+    {% csrf_token %}
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h3>{{ _("Create New User") }}</h3>
+    </div>
+    <div class="modal-body" style="max-height: 450px;">
+
+      <div class="control-group">
+        <label for="modal_add_user_name" class="control-label">{{ _("User name") }}:</label>
+        <div class="controls">
+          <input class="user_unique" id="modal_add_user_name" type="text" name="username" placeholder="{{ _("1-32 characters") }}" required autofocus>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label for="modal_add_user_password" class="control-label">{{ _("Password") }}:</label>
+        <div class="controls">
+          <input id="modal_add_user_password" type="password" name="password" required>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label for="modal_add_user_password2" class="control-label">{{ _("Confirm")}}:</label>
+        <div class="controls">
+          <input id="modal_add_user_password2" type="password" name="password2" required>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label for="modal_add_description" class="control-label">{{ _("Description") }}:</label>
+        <div class="controls">
+          <input id="modal_add_description" type="text" name="description">
+        </div>
+      </div>
+
+      <div class="control-group" style="margin-top: 10px">
+          <!--Table-->
+          <table id="table_add_cifs_users" class="table table-striped">
+            <thead>
+            <tr>
+              <th class="span4 table"> {{ _("Name") }} </th>
+              <th class="span2" style="text-align: center;"> {{ _("Join") }} </th>
+              <th class="span2" style="text-align: center;"> {{ _("Leave") }} </th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for group in cifs_groups %}
+              {% if group.groupname != "everyone" %}
+                <tr>
+                  <td class="span4 table" data-toggle="tooltip" title="{{ group.groupname }}"> <img src="/static/img/ArkExpress_CIFS_group_icon.png"> {{ group.groupname | truncatechars:25}}</i> </td>
+                  <td class="span2" style="text-align: center;"> <input type="radio" id="group_{{ group.groupname }}_J" name="group_{{ group.groupname }}" value="J"> </td>
+                  <td class="span2" style="text-align: center;"> <input type="radio" id="group_{{ group.groupname }}_L" name="group_{{ group.groupname }}" value="L" checked> </td>
+                </tr>
+              {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div id="table_cifs_user_submit_add" style="display: none"></div>
+    </div>
+    <div class="modal-footer">
+        <button type="submit" id="add-cifs-user-submit" class="btn btn-small btn-hopebay">{{ _("Apply") }}</button>
+        <a href="#" class="btn btn-small" data-dismiss="modal">{{ _("Cancel") }}</a>
+    </div>
+    </form>
+</div>
+
+<div id="modal-del-cifs-user" class="modal hide fade">
+  <form method="POST" id="form-del-cifs-user" action="{% url 'volume:volume_cifs_deluser' %}" class="form form-horizontal form-hopebay" onsubmit='setTimeout("location.reload(true);", 5000)'>
+    {% csrf_token %}
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h3>{{ _("Delete User") }}</h3>
+    </div>
+    <div class="modal-body">
+        <input type="hidden" name="username" id="modal_del_user_name">
+        <p>{{ _("User (<b></b>) will be permanently deleted. Are you sure to continue?") }}</p>
+        <!--<div class="control-group">
+            <label for="modal_del_user_name" class="control-label">{{ _("User name") }}:</label>
+            <div class="controls">
+                <input id="modal_del_user_name" type="text" name="username" readonly>
+            </div>
+        </div>-->
+    </div>
+    <div class="modal-footer">
+        <label type="checkbox">
+            <input type="checkbox" name="purge">
+            {{ _("Yes, I understand the risks.") }}
+        </label>
+        <button id="del_btn" class="btn btn-small btn-danger" type="submit">{{ _("Delete") }}</button>
+        <a href="#" class="btn btn-small" data-dismiss="modal">{{ _("No") }}</a>
+    </div>
+  </form>
+</div>
+
+<div id="modal-mod-cifs-user" class="modal hide fade">
+  <form method="POST" id="form-mod-cifs-user" action="{% url 'volume:volume_cifs_moduser' %}" class="form form-horizontal form-hopebay">
+    {% csrf_token %}
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h3>{{ _("Modify User") }}</h3>
+    </div>
+    <div class="modal-body">
+
+      <div class="control-group">
+        <label for="modal_mod_user_name" class="control-label">{{ _("User name") }}:</label>
+        <div class="controls">
+          <input id="modal_mod_user_name" type="text" name="username" readonly>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label for="modal_mod_description" class="control-label">{{ _("Description") }}:</label>
+        <div class="controls">
+          <input id="modal_mod_description" type="text" name="description">
+        </div>
+      </div>
+
+      <div class="control-group" style="margin-top: 10px">
+          <!--Table-->
+            <table id="table_mod_cifs_users" class="table table-striped">
+              <thead>
+                  <tr>
+                      <th class="span4 table"> {{ _("Name") }} </th>
+                      <th class="span2" style="text-align: center;"> {{ _("Join") }} </th>
+                      <th class="span2" style="text-align: center;"> {{ _("Leave") }} </th>
+                  </tr>
+              </thead>
+              <tbody>
+              {% for group in cifs_groups %}
+              {% if group.groupname != "everyone" %}
+              <tr>
+                  <td class="span4 table" data-toggle="tooltip" title="{{ group.groupname }}"> <img src="/static/img/ArkExpress_CIFS_group_icon.png"> {{ group.groupname | truncatechars:25}}</i> </td>
+                  <td class="span2" style="text-align: center;"> <input type="radio" id="group_{{ group.groupname }}_J" name="group_{{ group.groupname }}" value="J"> </td>
+                  <td class="span2" style="text-align: center;"> <input type="radio" id="group_{{ group.groupname }}_L" name="group_{{ group.groupname }}" value="L" checked> </td>
+              </tr>
+              {% endif %}
+              {% endfor %}
+              </tbody>
+            </table>
+      </div>
+
+      <div id="table_cifs_user_submit_mod" style="display: none"></div>
+    </div>
+    <div class="modal-footer">
+        <button type="submit" id="mod-cifs-user-submit" class="btn btn-small btn-hopebay">{{ _("Apply") }}</button>
+        <a href="#" class="btn btn-small" data-dismiss="modal">{{ _("Cancel") }}</a>
+    </div>
+  </form>
+</div>
+
+<div id="modal-folder-cifs-user" class="modal hide fade">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h3>{{ _("Folder Permission List") }}</h3>
+    </div>
+    <div class="modal-body">
+        <div class="control-group">
+          <table id="table_folder_cifs_users" class="table table-striped">
+            <thead>
+                <tr>
+                    <th class="span6"> {{ _("Name") }} </th>
+                    <th class="span6" style="text-align: center;"> {{ _("Permission") }} </th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for target in cifs_exports %}
+            <tr>
+              <td id="folderlist_{{ target.name }}" class="span6"> {{ target.name }} </td>
+              <td id="folderperm_{{ target.name }}" class="span6">{{ _("None") }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a href="#" class="btn btn-small" data-dismiss="modal">{{ _("Cancel") }}</a>
+    </div>
+</div>
+
+<div id="modal-passwd-cifs-user" class="modal hide fade">
+  <form method="POST" id="form-passwd-cifs-user" action="{% url 'volume:volume_cifs_chpass' %}" class="form form-horizontal form-hopebay">
+    {% csrf_token %}
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h3>{{ _("Change User Password") }}</h3>
+    </div>
+    <div class="modal-body">
+        <input type="hidden" name="username" id="modal_passwd_user_name">
+
+        <div class="control-group">
+          <label for="modal_change_user_password" class="control-label">{{ _("Password") }}:</label>
+          <div class="controls">
+            <input id="modal_change_user_password" type="password" name="password" required autofocus>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label for="modal_change_user_password2" class="control-label">{{ _("Confirm") }}:</label>
+          <div class="controls">
+            <input id="modal_change_user_password2" type="password" name="password2" required>
+          </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="submit" id="passwd-cifs-user-submit" class="btn btn-small btn-hopebay">{{ _("Apply") }}</button>
+        <a href="#" class="btn btn-small" data-dismiss="modal">{{ _("Cancel") }}</a>
+    </div>
+  </form>
+</div>
+
+<div class="container">
+    <div class="row-fluid">
+        {% include "sidebar.html" %}
+        <div id="screen" class="span9 main-content">
+            {% include "cifs_bar.html" %}
+            <h3 class="content-header">CIFS {{ _("Users") }}</h3>
+
+            <div class="row-fluid">
+              <div class="span12" data-role="content">
+                <table id="table_cifs_users" class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th class="span1" style="white-space:nowrap;"> {{ _("Status") }} </th>
+                            <th class="span3"> {{ _("User name") }} </th>
+                            <th class="span5"> {{ _("Description") }} </th>
+                            <th class="span3"> {{ _("Action") }} </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for user in cifs_adusers %}
+                    <tr>
+                        <td class="span1"><img src="/static/img/volume/ArkExpress_CIFS_AD_user_icon.png"></td>
+                        <td class="span3" data-toggle="popover" data-content="{{ user.username }}">{{ user.username | truncatechars:15}}</td>
+                        <td class="span5" data-toggle="popover" data-content="{{ user.desc }}">{{ user.desc | truncatechars:29 }}</td>
+                        <td class="span3">
+                          <a class="btn btn-icon btn-small btn-hopebay" data-toggle="popover" data-content="{{_("AD user cannot be edited")}}" disabled><span class="hopebay-icon btn-icon-edit"></a>
+                          <a class="btn btn-icon btn-small btn-hopebay" data-toggle="popover" data-content="{{_("AD user cannot be edited")}}" disabled><span class="hopebay-icon btn-icon-key"></a>
+                          <a class="btn btn-icon btn-small btn-hopebay user-folder"  data-toggle="popover" data-content="{{_("Folder permissions")}}" data-id="{{ user.username }}" data-domain="true"><span class="hopebay-icon btn-icon-folder-list"></a>
+                          <a class="btn btn-icon btn-small btn-hopebay" data-toggle="popover" data-content="{{_("AD user cannot be deleted")}}" disabled><span class="hopebay-icon btn-icon-trash"></a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% for user in cifs_users %}
+                    <tr>
+                        <td class="span1">
+                          {% if user.status %}
+                            <input type="checkbox" class="switch-mini" id="dis_user_${{ user.username }}" name="{{ user.username }}" data-id="{{ user.username}}" checked/>
+                          {% else %}
+                            <input type="checkbox" class="switch-mini" id="en_user_${{ user.username }}" name="{{ user.username }}" data-id="{{ user.username }}"/>
+                          {% endif %}
+                        </td>
+                        <td class="span3" data-toggle="popover" data-content="{{ user.username }}">{{ user.username | truncatechars:15}}</td>
+                        <td class="span5" data-toggle="popover" data-content="{{ user.desc }}">{{ user.desc | truncatechars:29}}</td>
+                        <td class="span3">
+                          <a class="btn btn-icon btn-small btn-hopebay user-modify" data-toggle="popover" data-content="{{_("Edit")}}" data-id="{{ user.username }}" data-desc="{{ user.desc }}"><span class="hopebay-icon btn-icon-edit"></a>
+                          <a class="btn btn-icon btn-small btn-hopebay user-passwd" data-toggle="popover" data-content="{{_("Change password")}}" data-id="{{ user.username }}"><span class="hopebay-icon btn-icon-key"></a>
+                          <a class="btn btn-icon btn-small btn-hopebay user-folder" data-toggle="popover" data-content="{{_("Folder permissions")}}" data-id="{{ user.username }}" data-domain="false" ><span class="hopebay-icon btn-icon-folder-list"></a>
+                          <a class="btn btn-icon btn-small btn-hopebay user-delete" data-toggle="popover" data-content="{{_("Delete")}}" data-id="{{ user.username }}"><span class="hopebay-icon btn-icon-trash"></a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+              </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_script%}
+<script>
+var translate = {
+    volume_cifs_user_toggle: "{% url 'volume:volume_cifs_user_toggle' %}",
+    empty_message: "{{ _("No data available in table") }}",
+    group_information_message: "{{ _("Total group(s):") }} _MAX_",
+    folder_information_message: "{{ _("Total folder(s):") }} _MAX_",
+    user_information_message: "{{ _("Total user(s):") }} _MAX_",
+    create_user_tooltip: "{{ _("Create a new user") }}",
+    list_group_tooltip: "{{ _("List all groups") }}",
+    ch_passwd: "{{ _("Change User Password - ") }}",
+    folder_list: "{{ _("Folder Permission List - ") }}",
+}
+
+function __(str){
+    return translate[str]
+}
+
+jQuery.validator.addMethod("username_check", function(value, element) {
+  var volname = /^[A-Za-z][\w-]+$/;
+  return this.optional(element) || volname.test(value);
+}, "{{ _("Invalid username") }}" );
+
+jQuery.validator.addMethod("user_unique", function(value, element){
+  var user_list = [];
+  {% if cifs_users %}
+    {% for user in cifs_users %}
+      user_list.push("{{ user.username }}".toLowerCase());
+    {% endfor %}
+  {% endif %}
+  {% if cifs_adusers %}
+    {% for user in cifs_adusers %}
+      user_list.push("{{ user.username }}".toLowerCase());
+    {% endfor %}
+  {% endif %}
+  return this.optional(element) || $.inArray(value.toLowerCase(), user_list) == -1;
+}, '{{_("This name is already exist.")}}');
+
+</script>
+{% compressed_js "cifs_user" %}
+{% include "validate_i18n.html" %}
+{% endblock %}

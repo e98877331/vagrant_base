@@ -1,0 +1,102 @@
+{% extends "base.html" %}{% load compressed %}
+{% block head_title %}{{ _("Volume Export") }}{% endblock %}
+{% block navbar_class %}{% endblock %}
+{% block navbar %}
+  {% include "_top_bar.html" %}
+{% endblock %}
+{% block body %}
+
+<div class="container">
+  <div class="row-fluid">
+    {% include "sidebar.html" %}
+    <div class="span9 main-content">
+        {% with "volume:volume_"|add:folder_type as back_url %}
+        <div class="content-header-path"><a href="{% url back_url %}">{{folder_type|upper}} {{ _("Shared Folder") }}</a> > <a href="{% url 'volume:snapshot' folder_type=folder_type folder_name=folder_name %}">{{ folder_name }}</a> > {{ _("Schedule Snapshot") }}</div>
+        {% endwith %}
+        <h3 class="content-header">{{ _("Schedule Snapshot") }}</h3>
+        <div class="span12" data-role="content">
+          <div class="row-fluid">
+              <form class="form-horizontal" method="post" action="{% url 'volume:calendar' folder_type=folder_type folder_name=folder_name%}" id="form_calendar">
+                {% csrf_token %}
+                <div class="control-group">
+                    <div class="controls radio">
+                        <input type="radio"  name="calendar_type" value="none" {% if calendar_type == "none" %}checked{% endif %}>
+                        {{ _("None") }}
+                    </div>
+                </div>
+                <div class="control-group">
+                    <div class="controls radio">
+                        <input type="radio" name="calendar_type" value="schedule" {% if calendar_type == "schedule" %}checked{% endif %}>
+                        {{ _("Schedule Snapshot") }}
+                    </div>
+                </div>
+                <div class="control-group">
+                    <div class="controls">
+                        {{ _("Start from") }}
+                        <select id="time_select" class="time_select" name="calendar_time">
+                        </select>
+                        {{ _("every day") }}
+                    </div>
+                </div>
+                <div class="control-group">
+                    <div class="controls checkbox">
+                        <input type="checkbox" name="is_apply_all_folders">{{ _("Apply to all folders") }}</input>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <div class="controls">
+                        <button type="submit" class="btn btn-small btn-hopebay">{{ _("Apply") }}</button>
+                        <a href="{% url 'volume:snapshot' folder_type=folder_type folder_name=folder_name %}" class="btn btn-small btn-hopebay">{{ _("Cancel") }}</a>
+                    </div>
+                </div>
+        </form>
+      </div>
+      <!-- row fluid -->
+    </div>
+    <!-- span 9 -->
+  </div>
+  <!-- row fluid -->
+</div>
+<!-- container -->
+
+<!-- Confirm modal -->
+{% if is_optimize %}
+<div id="modal-confirm" class="modal hide fade">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <h3>{{ _("Information") }}</h3>
+  </div>
+  <div class="modal-body">
+    <input type="hidden" name="target-id" id="target-id">
+    <p>{{ _("Following optimization shared folder will also apply the same setting:") }}</p>
+    <p>CIFS:
+    {% for item in small_folders.cifs %}<code>{{ item }}</code> {% endfor %}
+    </p>
+    <p>NFS:
+    {% for item in small_folders.nfs %}<code>{{ item }}</code> {% endfor %}
+    </p>
+  </div>
+  <div class="modal-footer">
+    <button id="confirm-btn" class="btn btn-small btn-hopebay">{{ _("Apply") }}</button>
+    <button class="btn btn-small" data-dismiss="modal" aria-hidden="true">{{ _("Cancel") }}</button>
+  </div>
+</div>
+<!-- End confirm modal -->
+{% endif %}
+
+{% endblock %}
+{% block extra_script %}
+<script>
+var translate = {
+    'folder_type': "{{ folder_type }}",
+    'calendar_type': "{{ calendar_type }}",
+    'calendar_time': "{{ calendar_time }}",
+    'is_optimize': "{{ is_optimize }}",
+}
+
+function __(str){
+    return translate[str]
+}
+</script>
+{% compressed_js "snapshot_calendar" %}
+{% endblock %}

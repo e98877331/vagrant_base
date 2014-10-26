@@ -1,0 +1,264 @@
+{% extends "base.html" %}{% load compressed %}
+
+{% block moreStyles %}{% compressed_css "volume_cifs_group" %}{% endblock %}
+{% block moreScripts %}{% compressed_js "volume_libs" %}{% endblock %}
+
+{% block head_title %}{{ _("Volume Export") }}{% endblock %}
+
+<!--<link rel="stylesheet" href="/static/css/table_style.css">
+<link rel="stylesheet" href="/static/css/validation_style.css" type="text/css" />-->
+
+{% block body_class %}home{% endblock %}
+{% block navbar_class %}{% endblock %}
+{% block navbar %}
+    {% include "_top_bar.html" %}
+{% endblock %}
+{% block body %}
+
+<!-- Modal -->
+<div id="modal-add-cifs-group" class="modal hide fade">
+  <form method="POST" id="form-add-cifs-group" action="{% url 'volume:volume_cifs_addgroup' %}"class="form form-horizontal form-hopebay">
+    {% csrf_token %}
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h3>{{ _("Create New Group") }}</h3>
+    </div>
+    <div class="modal-body">
+        <div class="control-group">
+          <label for="modal_add_group_name" class="control-label">{{ _("Group name") }}:</label>
+          <div class="controls">
+            <input class="group_unique" id="modal_add_group_name" type="text" name="groupname" placeholder="{{ _("1-32 characters") }}" required autofocus>
+          </div>
+        </div>
+        <div class="control-group" style="margin-top: 10px">
+          <!--Table-->
+          <table id="table_add_cifs_groups" class="table table-striped">
+            <thead>
+              <tr>
+                <th class="span4 table"> {{ _("Name") }} </th>
+                <th class="span2" style="text-align: center;"> {{ _("Join") }} </th>
+                <th class="span2" style="text-align: center;"> {{ _("Leave") }} </th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for user in cifs_users %}
+              <tr>
+                <td class="span4 table" data-toggle="tooltip" title="{{ user.username}}"> <img src="/static/img/ArkExpress_CIFS_user_icon.png"> {{ user.username | truncatechars:25}}</i> </td>
+                <td class="span2" style="text-align: center;"> <input type="radio" id="user_{{ user.username }}_J" name="user_{{ user.username }}" value="J"> </td>
+                <td class="span2" style="text-align: center;"> <input type="radio" id="user_{{ user.username }}_L" name="user_{{ user.username }}" value="L" checked> </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+    </div>
+
+    <div id="table_cifs_group_submit_add" style="display: none"></div>
+    <div class="modal-footer">
+        <button id="add-cifs-group-submit" class="btn btn-small btn-hopebay" type="submit">{{ _("Apply") }}</button>
+        <a href="#" class="btn btn-small" data-dismiss="modal">{{ _("Cancel") }}</a>
+    </div>
+  </form>
+</div>
+
+<div id="modal-del-cifs-group" class="modal hide fade">
+  <form method="POST" id="form-del-cifs-group" action="{% url 'volume:volume_cifs_delgroup' %}"class="form form-horizontal form-hopebay">
+    {% csrf_token %}
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h3>{{ _("Delete Group") }}</h3>
+    </div>
+    <div class="modal-body">
+        <input type="hidden" name="groupname" id="modal_del_group_name">
+        <p>{{ _("Group (<b></b>) will be permanently deleted. Are you sure to continue?") }}</p>
+    </div>
+    <div class="modal-footer">
+        <label type="checkbox">
+            <input type="checkbox" name="purge">
+            {{ _("Yes, I understand the risks.") }}
+        </label>
+        <button id="del_btn" class="btn btn-small btn-danger" type="submit">{{ _("Delete") }}</button>
+        <a href="#" class="btn btn-small" data-dismiss="modal">{{ _("No") }}</a>
+    </div>
+  </form>
+</div>
+
+<div id="modal-folder-cifs-group" class="modal hide fade">
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h3>{{ _("Folder Permission List") }}</h3>
+    </div>
+    <div class="modal-body">
+        <div class="control-group">
+          <table id="table_folder_cifs_groups" class="table table-striped">
+            <thead>
+                <tr>
+                    <th class="span4 table"> {{_("Name")}} </th>
+                    <th class="span4 table" style="text-align: center;"> {{_("Permission")}} </th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for target in cifs_exports %}
+            <tr>
+              <td id="folderlist_{{ target.name }}" class="span4 table"> {{ target.name }} </td>
+              <td id="folderperm_{{ target.name }}" class="span4 table">{{ _("None") }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a href="#" class="btn btn-small" data-dismiss="modal">{{ _("Cancel") }}</a>
+    </div>
+</div>
+
+<div id="modal-mod-cifs-group" class="modal hide fade">
+  <form method="POST" id="form-mod-cifs-group" action="{% url 'volume:volume_cifs_modgroup' %}" class="form form-horizontal form-hopebay">
+    {% csrf_token %}
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h3>{{ _("Modify Group") }}</h3>
+    </div>
+    <div class="modal-body">
+        <div class="control-group">
+          <label for="modal_mod_group_name" class="control-label">{{ _("Group name") }}</label>
+          <div class="controls">
+            <input id="modal_mod_group_name" type="text" name="groupname" readonly>
+          </div>
+        </div>
+
+        <div class="control-group" style="margin-top: 10px">
+          <!--Table-->
+          <table id="table_mod_cifs_groups" class="table table-striped">
+            <thead>
+              <tr>
+                <th class="span4 table"> {{ _("Name") }} </th>
+                <th class="span2" style="text-align: center;"> {{ _("Join") }} </th>
+                <th class="span2" style="text-align: center;"> {{ _("Leave") }} </th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for user in cifs_users %}
+              <tr>
+                <td class="span4 table" data-toggle="tooltip" title="{{ user.username }}"> <img src="/static/img/ArkExpress_CIFS_user_icon.png"> {{ user.username | truncatechars:25 }}</i> </td>
+                <td class="span2" style="text-align: center;"> <input type="radio" id="user_{{ user.username }}_J" name="user_{{ user.username }}" value="J"> </td>
+                <td class="span2" style="text-align: center;"> <input type="radio" id="user_{{ user.username }}_L" name="user_{{ user.username }}" value="L" checked> </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+    </div>
+    <div id="table_cifs_group_submit_mod" style="display: none"></div>
+    <div class="modal-footer">
+        <button type="submit" id="mod-cifs-group-submit" class="btn btn-small btn-hopebay">{{ _("Apply") }}</button>
+        <a href="#" class="btn btn-small" data-dismiss="modal">{{ _("Cancel") }}</a>
+    </div>
+  </form>
+</div>
+
+<div class="container">
+    <div class="row-fluid">
+        {% include "sidebar.html" %}
+        <div id="screen" class="span9 main-content">
+            {% include "cifs_bar.html" %}
+            <h3 class="content-header">CIFS {{_("Groups")}}</h3>
+
+            <div class="row-fluid">
+              <div class="span12" data-role="content">
+                <table id="table_cifs_groups" class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th class="span1" style="white-space:nowrap;"> {{ _("Status") }} </th>
+                            <th class="span4 table"> {{ _("Group name") }} </th>
+                            <th class="span4 table"> {{ _("Members") }} </th>
+                            <th class="span3"> {{ _("Action") }} </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for group in cifs_adgroups %}
+                    <tr>
+                        <td class="span1" style="text-align: center"><img src="/static/img/ArkExpress_group_icon_AD_group.png"></td>
+                        <td class="span4 table" data-toggle="popover" data-content="{{ group.groupname }}">{{ group.groupname | truncatechars:25 }}</td>
+                        <td class="span4 table" data-toggle="popover" data-content="{{ group.members | join:", " }}"> 
+                          {{ group.members | join:", " | truncatechars:35}}
+                        </td>
+                        <td class="span3">
+                          <a class="btn btn-icon btn-small btn-hopebay" data-toggle="popover" data-content="{{ _("AD group cannot be edited") }}" disabled><span class="hopebay-icon btn-icon-edit"></a>
+                            <a class="btn btn-icon btn-small btn-hopebay group-folder" data-toggle="popover" data-content="{{ _("Folder permissions") }}" data-id="{{ group.groupname }}" data-domain="true"><span class="hopebay-icon btn-icon-folder-list"></a>
+                          <a class="btn btn-icon btn-small btn-hopebay" data-toggle="popover" data-content="{{ _("AD group cannot be deleted") }}" disabled><span class="hopebay-icon btn-icon-trash"></a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% for group in cifs_groups %}
+                    <tr>
+                        <td class="span1" style="text-align: center"><img src="/static/img/ArkExpress_group_icon_non-AD_group.png"></td>
+                        <td class="span4 table" data-toggle="popover" data-content="{{ group.groupname }}">{{ group.groupname | truncatechars:25}}</td>
+                        <td class="span4 table" data-toggle="popover" data-content="{{ group.members | join:", " }}">
+                          {{ group.members | join:", " | truncatechars:35}}
+                        </td>
+                        <td class="span3">
+                        {% if group.groupname == "everyone" %}
+                        <a class="btn btn-icon btn-small btn-hopebay" data-toggle="popover" data-content="{{ _("everyone group cannot be edited") }}" disabled><span class="hopebay-icon btn-icon-edit"></a>
+                        <a class="btn btn-icon btn-small btn-hopebay" data-toggle="popover" data-content="{{ _("everyone group cannot be edited") }}" disabled><span class="hopebay-icon btn-icon-folder-list"></a>
+                        <a class="btn btn-icon btn-small btn-hopebay" data-toggle="popover" data-content="{{ _("everyone group cannot be edited") }}" disabled><span class="hopebay-icon btn-icon-trash"></a>
+                        {% else %}
+                        <a class="btn btn-icon btn-small btn-hopebay group-modify" data-toggle="popover" data-content="{{ _("Edit") }}" data-id="{{ group.groupname }}" data-members="{{ group.members}}"><span class="hopebay-icon btn-icon-edit"></a>
+                        <a class="btn btn-icon btn-small btn-hopebay group-folder" data-toggle="popover" data-content="{{ _("Folder permissions") }}" data-id="{{ group.groupname }}" data-domain="false"><span class="hopebay-icon btn-icon-folder-list"></a>
+                            <a class="btn btn-icon btn-small btn-hopebay group-delete" data-toggle="popover" data-content="{{ _("Delete") }}"{% if group.members|length|get_digit:"-1" > 0 %} disabled {% else%} data-id="{{ group.groupname }}" {% endif %}><span class="hopebay-icon btn-icon-trash"></a>
+                        {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+              </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_script%}
+<script>
+var translate = {
+    volume_cifs_group_info: "{% url 'volume:volume_cifs_groupinfo' %}",
+    create_group_tooltip: "{{ _("Create a new group") }}",
+    list_user_tooltip: "{{ _("List all users") }}",
+    empty_message: "{{ _("No data available in table") }}",
+    group_information_message: "{{ _("Total group(s):") }} _MAX_",
+    user_information_message: "{{ _("Total user(s):") }} _MAX_",
+    folder_information_message: "{{ _("Total folder(s):") }} _MAX_",
+    folder_list: "{{ _("Folder Permission List - ") }}",
+}
+
+function __(str){
+    return translate[str]
+}
+
+jQuery.validator.addMethod("groupname_check", function(value, element) {
+  var volname = /^[A-Za-z][\w-]+$/;
+  return this.optional(element) || volname.test(value);
+}, "{{ _("Invalid groupname") }}");
+
+jQuery.validator.addMethod("group_unique", function(value, element){
+  var group_list = [];
+  {% if cifs_groups %}
+    {% for group in cifs_groups %}
+      group_list.push("{{ group.groupname }}".toLowerCase());
+    {% endfor %}
+  {% endif %}
+  {% if cifs_adgroups %}
+    {% for group in cifs_adgroups %}
+      group_list.push("{{ group.groupname }}".toLowerCase());
+    {% endfor %}
+  {% endif %}
+  return this.optional(element) || $.inArray(value.toLowerCase(), group_list) == -1;
+}, '{{_("This name is already exist.")}}');
+
+</script>
+{% compressed_js "cifs_group" %}
+{% include "validate_i18n.html" %}
+{% endblock %}

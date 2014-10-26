@@ -1,0 +1,31 @@
+
+<div id="sidebar" class="sidebar">
+  <ul class="nav nav-list">
+    <li class="sidebar-btn">
+        <a href="{% url 'volume:volume_cifs' %}">
+        <i class="icon-cifs"></i><p>CIFS</p></a>
+    </li>
+    <li class="sidebar-btn">
+        <a href="{% url 'volume:volume_nfs' %}">
+        <i class="icon-nfs"></i><p>NFS</p></a>
+    </li>
+    <li class="sidebar-btn">
+        <a href="{% url 'volume:volume_iscsi' %}">
+        <i class="icon-iscsi"></i><p>iSCSI</p></a>
+    </li>
+  </ul>
+</div>
+
+
+<script>
+    $(function(){
+        var current_path = window.location.pathname
+        $("#sidebar .sidebar-btn a").each(function(){
+            if ( current_path.indexOf($(this).attr('href')) == 0 ){
+                $(this).closest('li').addClass('active');
+                // Break each
+                return false
+            }
+        });
+    });
+</script>

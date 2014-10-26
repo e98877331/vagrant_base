@@ -1,0 +1,32 @@
+.nav .sidebar-btn .icon-iscsi{
+  background-image: url('/static/img/volume/ArkExpress_iSCSI_icon_default.png');
+}
+
+.nav .sidebar-btn.active .icon-iscsi{
+  background-image: url('/static/img/volume/ArkExpress_iSCSI_icon_mselect.png');
+}
+
+.modal {
+   top: 10% !important;
+   opacity: 1 !important;
+}
+
+
+.table th.text-center, .table td.text-center {
+  text-align: center;
+}
+
+.summary {
+  padding-top: 10px;
+  padding-left: 20px;
+  padding-right: 20px;
+  padding-bottom: 10px;
+}
+
+.summary ul li {
+  font-size:12pt;
+}
+
+span.btn-icon-add-iscsi {
+    background-image: url("/static/img/volume/ArkExpress_iSCSI_icon_create_new_volume.png");
+}

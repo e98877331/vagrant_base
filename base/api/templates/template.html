@@ -1,0 +1,43 @@
+{% extends "base.html" %}{% load compressed %}
+{% block moreStyles %}{% compressed_css 'volume' %}{% endblock %}
+{% block moreScripts %}{% compressed_js "volume_libs" %}{% endblock %}
+{% block head_title %}{{ _("Volume Export") }}{% endblock %}
+{% block navbar_class %}{% endblock %}
+{% block navbar %}
+  {% include "_top_bar.html" %}
+{% endblock %}
+{% block body %}
+
+<div class="container">
+  <div class="row-fluid">
+    {% include "sidebar.html" %}
+    <div class="span9 main-content">
+      {% include "cifs_bar.html" %}
+      <h3 class="content-header">{{ _("CIFS Shared Folder") }}</h3>
+      <div class="row-fluid">
+        <div class="span9">
+          <ul>
+            <li style="font-size:12pt;">{{ _("Total Users") }}: {{ total_users }}</li>
+          </ul>
+        </div>
+        <div class="span3">
+            <button class="btn btn-hopebay" id="cifs-create-btn" data-target="#modal-add-cifs" role="button" data-toggle="modal">{{ _("Create Folder") }}</button>
+        </div>
+      </div>
+
+      <div class="row-fluid">
+        <div class="span12" data-role="content">
+          <table id="cifs_export" class="table table-hover">
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+{% block extra_script %}
+<script>
+</script>
+{% include "validate_i18n.html" %}
+{% endblock %}

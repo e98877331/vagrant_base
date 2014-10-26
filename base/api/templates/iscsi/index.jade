@@ -1,0 +1,484 @@
+script
+  var translate = {
+    scheduled:                "{{_("Scheduled")}}",
+    success:                  "{{_("Success")}}",
+    incomplete:               "{{_("Incomplete")}}",
+    initial:                  "{{_("Initial")}}",
+    success_title:            "{{_("Success !!")}}",
+    error_title:              "{{_("Error !!")}}",
+    server_resp:              "{{_("Server Response:")}}",
+    yes:                      "{{_("Yes")}}",
+    no:                       "{{_("No")}}",
+    ready:                    "{{_("Ready")}}",
+    connected:                "{{_("Connected")}}",
+    disabled:                 "{{_("Disabled")}}",
+    of_client_is_connecting:  "{{_("of Client is Connecting")}}",
+    readOnly:                 "{{_("Read-only")}}",
+    readWrite:                "{{_("Read/Write")}}"
+  }
+
+  function t(str){
+    return translate[str]
+  }
+
+h3.content-header {{ _("iSCSI Target Device") }}
+
+//- buttons
+.row-fluid
+  .span12
+    a.btn.btn-icon.btn-small.btn-hopebay(
+      ng-click='detailModal()',
+      ng-show='hasIscsiQuota'
+    )
+      span.hopebay-icon.btn-icon-add-iscsi
+    a.btn.btn-icon.btn-small.btn-hopebay.disabled(
+      ng-hide='hasIscsiQuota',
+      popover='{{_("The number of iSCSI volumes is limited.")}}',
+      popover-trigger='mouseenter',
+      popover-placement='bottom'
+    )
+      span.hopebay-icon.btn-icon-add-iscsi
+
+//- summarys
+.row-fluid
+  .span12
+    {{ _("Target Device")}}: {$ targets.data.length $}, {{ _("Capacity")}}: {$ targets.totalCapacity | bytes $}
+
+//- table
+.row-fluid
+  .span12(data-role='content')
+    table#iscsi-table.table.table-hover()
+      thead
+        tr
+          th.text-center {{ _("Export") }}
+          th             {{ _("Target Name") }}
+          th.text-center {{ _("Capacity") }}
+          th.text-center {{ _("CHAP") }}
+          th.text-center {{ _("ACL") }}
+          th.text-center {{ _("Status") }}
+          th.text-center {{ _("Options") }}
+      tbody
+        tr(ng-if='(targets == null)')
+          td(colspan='7')
+            h4.text-center
+              i.fa.fa-cog.fa-spin
+              | &nbsp;{{ _("Loading...") }}
+        tr(ng-if='(targets.data.length == 0)')
+          td(colspan='7')
+            h4.text-center
+              i.fa.fa-exclamation-circle
+              | &nbsp;{{ _("No Data!!") }}
+        tr(ng-repeat='item in targets.data')
+          td.text-center.span1
+            input(bs-switch, ng-model='item.enabled', type="checkbox", switch-size='mini', ng-change='toggle(item)', switch-animate='false', switch-on-label='ON', switch-off-label='OFF')
+          td.span3
+            a.histcomment(
+              ng-click='pathDetailModal(item)',
+              popover='{$ item.description $}',
+              popover-trigger='mouseenter',
+              popover-placement='bottom'
+            ) {$ item.target_name $}
+          td.text-center.span2
+            //- span.pointer(
+            //-   popover='{{_("Used Capacity")}}',
+            //-   popover-trigger='mouseenter',
+            //-   popover-placement='bottom'
+            //- ) {$ item.status.usage | bytes $}
+            //- span(ng-show='item.thin_provisioning') &nbsp; / &nbsp;
+            //- span.pointer(
+            //-   ng-show='item.thin_provisioning',
+            //-   popover='{{_("Allocated Capacity")}}',
+            //-   popover-trigger='mouseenter',
+            //-   popover-placement='bottom'
+            //- ) {$ item.capacity | bytes $}
+            span.pointer(
+              popover='{{_("Allocated Capacity")}}',
+              popover-trigger='mouseenter',
+              popover-placement='bottom'
+            ) {$ item.capacity | bytes $}
+          td.text-center.span1 {$ item.chap | booleanValue $}
+          td.text-center.span2 {$ item.acl | booleanValue $}
+          td.text-center.span1
+            span.pointer(
+              popover='{$ item.status.code | statusCode: item.status.connected $}',
+              popover-trigger='mouseenter',
+              popover-placement='bottom',
+              data-html='true'
+            )
+              span(ng-bind-html='item.status.code | statusCodeIcon')
+          td.text-center.span2
+            button.btn.btn-icon.btn-small.btn-hopebay(
+              title='{{_("Edit")}}', ng-click='detailModal(item)'
+            )
+              span.hopebay-icon.btn-icon-edit
+            button.btn.btn-icon.btn-small.btn-hopebay(
+              title='{{_("Delete")}}',
+              ng-click='deleteModal(item)'
+            )
+              span.hopebay-icon.btn-icon-trash
+
+toaster-container(toaster-options='{\'time-out\': 5000}')
+
+//- modal of toggle
+script(type='text/ng-template', id='toggle-modal.html')
+  .modal-header
+    button.close(type='button', ng-click='cancel()') ×
+    h3 {{ _("Disable iSCSI Target") }}
+  .modal-body
+    p {{ _("This target is conneted by following clients") }}
+    .no-top-margin.offset1(ng-repeat='c in item.status.connected')
+      span
+        i.fa.fa-laptop
+        | &nbsp;{$ c $}
+    p.top-margin-10 {{ _("This may cause data damage. Are you sure to disable this ?") }}
+    .control-group.no-top-margin.offset1
+      label(type='checkbox')
+        input(type='checkbox', name='purge', ng-model='confirm')
+        | &nbsp;{{ _("Yes, I understand the risks.") }}
+  .modal-footer
+
+    button.btn.btn-small.btn-danger(ng-click='ok(purge)', disabled='disabled', ng-disabled='! confirm', ng-hide='is_processing') {{ _("Disable") }}
+    button.btn.btn-small.btn-danger(ng-show='is_processing' disabled='disabled')
+      i.fa.fa-cog.fa-spin
+      | &nbsp;{{ _("Processing...") }}
+    button.btn.btn-small.btn-hopebay(ng-click='cancel()', ng-disabled='is_processing') {{ _("Cancel") }}
+
+//- modal of path detail
+script(type='text/ng-template', id='path-detail-modal.html')
+  .modal-header
+    button.close(type='button', ng-click='close()') ×
+    h3 {{ _("Connection Info") }}
+  .modal-body
+    form.form-horizontal
+      .control-group.small-control
+        label.control-label {{_("target")}}:
+        .controls
+          .input-append
+            input.span5(type='text', readonly='', value='{$ ip $}')
+            button.btn(type='button', clip-copy='getTextToCopy(ip)', title='{{_("copy to clipboard")}}')
+              i.fa.fa-clipboard
+
+      .control-group.small-control
+        label.control-label {{_("IQN")}}:
+        .controls
+          .input-append
+            input.span5(type='text', readonly='', value='{$ item.iqn $}')
+            button.btn(type='button', clip-copy='getTextToCopy(item.iqn)', title='{{_("copy to clipboard")}}')
+              i.fa.fa-clipboard
+  .modal-footer
+    button.btn.btn-small.btn-hopebay(ng-click='close()', ng-disabled='is_processing') {{ _("Close") }}
+
+//- modal of delete confirm
+script(type='text/ng-template', id='delete-modal.html')
+  .modal-header
+    button.close(type='button', ng-click='cancel()') ×
+    h3 {{ _("Delete iSCSI Target") }}
+  .modal-body
+    p(ng-show='item.status.code==2') {{ _("This target is conneted by following clients") }}
+    .no-top-margin.offset1(ng-show='item.status.code==2', ng-repeat='c in item.status.connected')
+      span
+        i.fa.fa-laptop
+        | &nbsp;{$ c $}
+    p.top-margin-10 {{ _("All data in this iSCSI will be permanently deleted. Are you sure to continue?") }}
+  .modal-footer
+    label(type='checkbox')
+      input(type='checkbox', name='purge', ng-model='confirm')
+      | &nbsp;{{ _("Yes, I understand the risks.") }}
+    button.btn.btn-small.btn-danger(ng-click='ok(purge)', disabled='disabled', ng-disabled='! confirm', ng-hide='is_processing') {{ _("Delete") }}
+    button.btn.btn-small.btn-danger(ng-show='is_processing' disabled='disabled')
+      i.fa.fa-cog.fa-spin
+      | &nbsp;{{ _("Processing...") }}
+    button.btn.btn-small.btn-hopebay(ng-click='cancel()', ng-disabled='is_processing') {{ _("Cancel") }}
+
+//- modal of detail
+script(type='text/ng-template', id='detail-modal.html')
+  .modal-header
+    button.close(type='button', ng-click='cancel()') ×
+    h3(ng-show='item._id==null') {{ _("Create iSCSI Target") }}
+    h3(ng-show='item._id') {{ _("Edit iSCSI Target") }}
+  wizard(style="margin-top: 22px ! important", on-finish='finishedWizard()')
+    //- iSCSI Target Name
+    wz-step(title='{{_("iSCSI Target Name")}}')
+      form.form-horizontal(name='step1', novalidate='novalidate')
+        .modal-body.detail-height
+          legend {{_("iSCSI Target Name")}}
+          //- control-group of target_name
+          .control-group(ng-class='{error: step1.target_name.$invalid && step1.target_name.$dirty, success: step1.target_name.$valid}')
+            label.control-label(for='target_name') {{_("Target Name")}}:
+            .controls(ng-show='!item._id')
+              input#target_name.no-bottom-margin(
+                name='target_name', type='text', placeholder='{{_("Ex: Target01")}}', required='required',
+                ng-model='item.target_name', ng-disabled='item._id', ng-pattern='/^\w[\w\-\.]{0,99}$/',
+                ensure-target-name-unique='{$ item $}', ng-change='setDefaultIqn(item.target_name)'
+              )
+
+              //- target_name help-block
+              span(ng-show='step1.target_name.$valid') &nbsp;
+                i.fa.fa-check.text-success
+              span(ng-show='step1.target_name.$invalid && step1.target_name.$dirty && item._id == null') &nbsp;
+                i.fa.fa-exclamation-circle.error-success.text-error
+              span.help-block.no-top-margin(ng-show='step1.target_name.$error.required')
+                i.fa.fa-warning
+                | &nbsp; {{_("Please input target name.")}}
+              span.help-block.no-top-margin.text-error(ng-show='step1.target_name.$error.unique')
+                i.fa.fa-warning
+                | &nbsp; {{_("This Target name is already exist.")}}
+              span.help-block.no-top-margin(ng-show='step1.target_name.$error.pattern')
+                i.fa.fa-warning
+                | &nbsp;  {{_("Please input 1-100 alphanumeric.")}}
+            .controls(style='margin-top: 5px;', ng-show='item._id')
+              {$ item.target_name $}
+
+          //- control-group of description
+          .control-group.no-top-margin
+            label.control-label(for='description') {{_("Description")}}:
+            .controls
+              input#description(
+                name='description', type='text', placeholder='{{_("Ex: Taipei Office NAS01")}}',
+                ng-model='item.description', maxlength=100
+              )
+      .modal-footer
+        button.btn.btn-small.btn-hopebay(wz-next='wz-next', ng-disabled='step1.$invalid', title='{{ _("Next") }}') {{ _("Next") }}
+        button.btn.btn-small(ng-click='cancel()', title='{{ _("Cancel") }}') {{ _("Cancel") }}
+    //- iSCSI Properties
+    wz-step(title='{{_("iSCSI Properties")}}')
+      form.form-horizontal(name='step2', novalidate='novalidate')
+        .modal-body.detail-height
+          fieldset
+            legend {{_("iSCSI Properties")}}
+            //- control-group of capacity
+            .control-group.no-top-margin
+              label.control-label(for='capacity') {{_("Capacity")}}:
+              .controls(ng-show='!item._id')
+                .input-append
+                  input#capacity.span2(
+                    name='capacity', type='text', step='any', placeholder='{{_("Ex: 512")}}', required='required', maxlength=6,
+                    ng-model='item.capacityInt', ng-pattern='/^[0-9]*\.?[0-9]*$/', ng-disabled='item._id'
+                  )
+                  .btn-group(style='margin-top: -10px;')
+                    button.btn.dropdown-toggle(data-toggle='dropdown')
+                      {$ item.capacityUnit $}
+                      span.caret
+                    ul.dropdown-menu
+                      li(ng-repeat='au in availableUnit')
+                        a.pointer(ng-click='item.capacityUnit=au', ng-bind-html='au')
+              .controls(style='margin-top: 5px;', ng-show='item._id') {$ item.capacity | bytes $}
+
+                //- capacity help-block
+                span(ng-show='step2.capacity.$valid') &nbsp;
+                  i.fa.fa-check.text-success
+                span(ng-show='step2.capacity.$invalid && step2.capacity.$dirty && item._id == null') &nbsp;
+                  i.fa.fa-exclamation-circle.error-success.text-error
+                span.help-block.no-top-margin(ng-show='step2.capacity.$error.required')
+                  i.fa.fa-warning
+                  | &nbsp; {{_("Please input max capacity.")}}
+                span.help-block.no-top-margin(ng-show='step2.capacity.$error.pattern')
+                  i.fa.fa-warning
+                  | &nbsp;  {{_("Please input numeric.")}}
+
+                //- control-group of thin_provisioning
+                label.checkbox(for='thin_provisioning', ng-show='false') {{_("Thin Provisioning.")}}
+                  input#thin_provisioning(
+                    name='thin_provisioning', type='checkbox',
+                    ng-model='item.thin_provisioning'
+                  )
+
+            //- control-group of iqn
+            .control-group.no-top-margin
+              label.control-label(for='iqn') {{_("IQN")}}:
+              .controls
+                input.span4#iqn(
+                  name='iqn', type='text',
+                  ng-model='item.iqn', maxlength=255,
+                  ng-pattern='/^(?:iqn\.[0-9]{4}-[0-9]{2}(?:\.[A-Za-z](?:[A-Za-z0-9\-]*[A-Za-z0-9])?)+(?::[A-Za-z0-9\.]*)?|eui\.[0-9A-Fa-f]{16})$/',
+                  ng-ensure-iqn-unique='{$ item $}'
+                )
+
+                //- iqn help-block
+                span(ng-show='step2.iqn.$valid') &nbsp;
+                  i.fa.fa-check.text-success
+                span(ng-show='step2.iqn.$invalid && step2.iqn.$dirty && item._id == null') &nbsp;
+                  i.fa.fa-exclamation-circle.error-success.text-error
+                span.help-block.no-top-margin(ng-show='step2.iqn.$error.required')
+                  i.fa.fa-warning
+                  | &nbsp; {{_("Please input iqn.")}}
+                span.help-block.no-top-margin.text-error(ng-show='step2.iqn.$error.unique')
+                  i.fa.fa-warning
+                  | &nbsp; {{_("This iqn is already exist.")}}
+                span.help-block.no-top-margin(ng-show='step2.iqn.$error.pattern')
+                  i.fa.fa-warning
+                  | &nbsp;  {{_("Please check iqn format.")}}
+
+            //- control-group of multi_sessions
+            .control-group.no-top-margin(ng-show='false')
+              label.control-label(for='multi_sessions') {{_("Multiple Sessions")}}:
+              .controls
+                label.checkbox(for='multi_sessions') {{_("Allow multiple sessions from one or more initiators.")}}
+                  input#multi_sessions(
+                    name='multi_sessions', type='checkbox',
+                    ng-model='item.multi_sessions'
+                  )
+
+      .modal-footer
+        button.btn.btn-small(wz-previous='wz-previous', title='{{ _("Back") }}') {{ _("Back") }}
+        button.btn.btn-small.btn-hopebay(wz-next='wz-next', ng-disabled='step2.$invalid', title='{{ _("Next") }}') {{ _("Next") }}
+        button.btn.btn-small(ng-click='cancel()', title='{{ _("Cancel") }}') {{ _("Cancel") }}
+    //- Authentication
+    wz-step(title='{{_("Authentication")}}')
+      form.form-horizontal(name='step3', novalidate='novalidate')
+        .modal-body.detail-height
+          fieldset
+            legend {{_("CHAP")}}
+
+            //- control-group of chap
+            .control-group.no-top-margin
+              label.control-label(for='chap') {{_("CHAP")}}:
+              .controls
+                label.checkbox(for='chap') {{_("Enable CHAP Authentication.")}}
+                  input#chap(
+                    name='chap', type='checkbox',
+                    ng-model='item.chap'
+                  )
+
+            //- control-group of username
+            .control-group(ng-show='item.chap', ng-class='{error: step3.username.$invalid && step3.username.$dirty, success: step3.username.$valid}')
+              label.control-label(for='username') {{_("Username")}}:
+              .controls
+                input#username.no-bottom-margin(
+                  name='username', type='text', placeholder='{{_("Ex: admin")}}', required='required',
+                  ng-model='item.username', ng-pattern='/^\w[\w\-\.]{0,99}$/', ng-if='item.chap'
+                )
+
+                //- username help-block
+                span(ng-show='step3.username.$valid && item._id == null') &nbsp;
+                  i.fa.fa-check.text-success
+                span(ng-show='step3.username.$invalid && step3.username.$dirty && item._id == null') &nbsp;
+                  i.fa.fa-exclamation-circle.error-success.text-error
+                span.help-block.no-top-margin(ng-show='step3.username.$error.required')
+                  i.fa.fa-warning
+                  | &nbsp; {{_("Please input username.")}}
+                span.help-block.no-top-margin(ng-show='step3.username.$error.pattern')
+                  i.fa.fa-warning
+                  | &nbsp;  {{_("Please input 1-100 alphanumeric.")}}
+
+            //- control-group of password
+            .control-group(ng-show='item.chap', ng-class='{error: step3.password.$invalid && step3.password.$dirty, success: step3.password.$valid}')
+              label.control-label(for='password') {{_("Password")}}:
+              .controls
+                input#password.no-bottom-margin(
+                  name='password', type='password', required='required',
+                  ng-model='item.password', ng-pattern='/^\w[\w\-\.]{0,99}$/', ng-if='item.chap'
+                )
+
+                //- password help-block
+                span(ng-show='step3.password.$valid && item._id == null') &nbsp;
+                  i.fa.fa-check.text-success
+                span(ng-show='step3.password.$invalid && step3.password.$dirty && item._id == null') &nbsp;
+                  i.fa.fa-exclamation-circle.error-success.text-error
+                span.help-block.no-top-margin(ng-show='step3.password.$error.required')
+                  i.fa.fa-warning
+                  | &nbsp; {{_("Please input password.")}}
+                span.help-block.no-top-margin(ng-show='step3.password.$error.pattern')
+                  i.fa.fa-warning
+                  | &nbsp;  {{_("Please input 1-100 alphanumeric.")}}
+
+            //- control-group of confirmPassword
+            .control-group(ng-show='item.chap', ng-class='{error: step3.confirmPassword.$invalid && step3.confirmPassword.$dirty, success: step3.confirmPassword.$valid}')
+              label.control-label(for='confirmPassword') {{_("Confirm Password")}}:
+              .controls
+                input#confirmPassword.no-bottom-margin(
+                  name='confirmPassword', type='password', required='required',
+                  ng-model='item.confirmPassword', ng-pattern='/^\w[\w\-\.]{0,99}$/', ng-if='item.chap',
+                  ensure-password-match='{$ item $}'
+                )
+
+                //- confirmPassword help-block
+                span(ng-show='step3.confirmPassword.$valid && item._id == null') &nbsp;
+                  i.fa.fa-check.text-success
+                span(ng-show='step3.confirmPassword.$invalid && step3.confirmPassword.$dirty && item._id == null') &nbsp;
+                  i.fa.fa-exclamation-circle.error-success.text-error
+                span.help-block.no-top-margin(ng-show='step3.confirmPassword.$error.required')
+                  i.fa.fa-warning
+                  | &nbsp; {{_("Please input confirm password.")}}
+                span.help-block.no-top-margin.text-error(ng-show='step3.confirmPassword.$error.match && step3.confirmPassword.$dirty')
+                  i.fa.fa-warning
+                  | &nbsp; {{_("Confirm password is not match.")}}
+                span.help-block.no-top-margin(ng-show='step3.confirmPassword.$error.pattern')
+                  i.fa.fa-warning
+                  | &nbsp;  {{_("Please input 1-100 alphanumeric.")}}
+
+      .modal-footer
+        button.btn.btn-small(wz-previous='wz-previous', title='{{ _("Back") }}') {{ _("Back") }}
+        button.btn.btn-small.btn-hopebay(wz-next='wz-next', ng-disabled='step3.$invalid', title='{{ _("Next") }}') {{ _("Next") }}
+        button.btn.btn-small(ng-click='cancel()', title='{{ _("Cancel") }}') {{ _("Cancel") }}
+    //- ACL
+    wz-step(title='{{_("ACL")}}')
+      form.form-horizontal(name='step4', novalidate='novalidate')
+        .modal-body.detail-height
+          fieldset
+            legend {{_("ACL")}}
+            //- control-group of acl
+            .control-group.no-top-margin
+              label.control-label(for='acl') {{_("Initiator ACL")}}:
+              .controls
+                label.checkbox(for='acl') {{_("Enable")}}
+                  input#acl(
+                    name='acl', type='checkbox',
+                    ng-model='item.acl'
+                  )
+            //- control-group of iqnInput
+            .acl-list(ng-show='item.acl')
+              .control-group.no-top-margin.middle-control.no-bottom-margin
+                label.control-label(for='iqnInput') {{_("Initiator IQN")}}:
+                .controls
+                  .input-append
+                    input#iqnInput.span3(
+                      name='iqnInput', type='text', placeholder='{{_("Ex: iqn.2014-08.ark:initiator.01")}}', maxlength=100,
+                      ng-model='item.iqnInput', ng-pattern='/^(?:iqn\.[0-9]{4}-[0-9]{2}(?:\.[A-Za-z](?:[A-Za-z0-9\-]*[A-Za-z0-9])?)+(?::[A-Za-z0-9\.]*)?|eui\.[0-9A-Fa-f]{16})$/'
+                    )
+                    .btn-group(style='margin-bottom: 10px;')
+                      button.btn.dropdown-toggle(data-toggle='dropdown')
+                        {$ item.permissionInput | permission $}
+                        span.caret
+                      ul.dropdown-menu
+                        li(ng-repeat='aac in availableAC')
+                          a(ng-click='item.permissionInput=aac') {$ aac | permission $}
+                    .btn-group(style='margin-bottom: 10px;')
+                      button.btn.btn-info(ng-click='addIqnList()', ng-disabled='step4.iqnInput.$error.pattern || item.iqnInput.length === 0 ') {{_("Add")}}
+
+                  span.help-block.no-top-margin(style='margin-top: 0px;')(ng-show='step4.iqnInput.$error.pattern')
+                    i.fa.fa-warning
+                    | &nbsp; {{_("Please check iqn format.")}}
+
+              table.table.table-hover.table-condensed
+                thead
+                  tr
+                    th {{ _("Initiator IQN") }}
+                    th.text-center {{ _("Permission") }}
+                    th.text-center {{ _("Options") }}
+                tbody
+                  tr(ng-if='(item.acls.length == 0)')
+                    td(colspan='3')
+                      h4.text-center
+                        i.fa.fa-exclamation-circle
+                        | &nbsp;{{ _("No Data!!") }}
+                  tr(ng-repeat='ac in item.acls')
+                    td {$ ac.iqn $}
+                    td.text-center {$ ac.permission | permission $}
+                    td.text-center
+                      button.btn.btn-icon.btn-small.btn-hopebay(
+                        title='{{_("Edit")}}', ng-click='editIqnList(ac)'
+                      )
+                        span.hopebay-icon.btn-icon-edit
+                      button.btn.btn-icon.btn-small.btn-hopebay(
+                        title='{{ _("Delete") }}', ng-click='deleteIqnList(ac)'
+                      )
+                        span.hopebay-icon.btn-icon-trash
+
+      .modal-footer
+        button.btn.btn-small(wz-previous='wz-previous', ng-disabled='is_processing', title='{{ _("Back") }}') {{ _("Back") }}
+        button.btn.btn-small.btn-hopebay(wz-next='wz-next', ng-click='ok(item)', ng-disabled='(item.acl && item.acls.length===0) || step4.$invalid' , ng-hide='is_processing', title='{{ _("Apply") }}') {{ _("Apply") }}
+        button.btn.btn-small.btn-hopebay(ng-show='is_processing' disabled='disabled')
+          i.fa.fa-cog.fa-spin
+          | &nbsp;{{ _("Processing...") }}
+        button.btn-small.btn(ng-click='cancel()', ng-disabled='is_processing', title='{{ _("Cancel") }}') {{ _("Cancel") }}

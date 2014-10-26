@@ -1,0 +1,18 @@
+<div class="navbar-content" id="cifs-bar">
+    <div class="navbar-inner-notify">
+        <ul class="nav">
+            <li><a href="{% url 'volume:volume_cifs' %}">{{ _("Shared folders") }}</a></li>
+            <li><a href="{% url 'volume:volume_cifs_user' %}">{{ _("Users") }}</a></li>
+            <li><a href="{% url 'volume:volume_cifs_group' %}">{{ _("Groups") }}</a></li>
+            <li><a href="{% url 'volume:volume_cifs_ads' %}">{{ _("AD service") }}</a></li>
+        </ul>
+    </div>
+</div>
+
+
+<script>
+    $(function(){
+        var current_path = window.location.pathname
+        $("#cifs-bar li:has([href='" + current_path + "'])").addClass('active');
+    }); 
+</script>

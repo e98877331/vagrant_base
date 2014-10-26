@@ -1,0 +1,31 @@
+extends base.html
+| {% load compressed %}
+block moreStyles
+  {% compressed_css "volume_iscsi" %}
+endblock
+block moreScripts
+  //[if lt IE 10]> <base href='/volume/iscsi/'><![endif]
+  //[if lt IE 10]> <script>if (document.location.search.indexOf("#") === -1) {window.location.href="/volume/iscsi/#/volume/iscsi/"}</script><![endif]
+endblock
+block extra_script
+  {% compressed_js "volume_iscsi" %}
+endblock
+
+block head_title
+  | {{ _("iSCSI Target Device") }}
+endblock
+
+block navbar_class
+endblock
+
+block navbar
+  include _top_bar.html
+endblock
+
+block body
+  .container
+    .row-fluid
+      | {% include "sidebar.html" %}
+      .span9.main-content(ng-app="iscsi")
+        div(ng-view)
+endblock

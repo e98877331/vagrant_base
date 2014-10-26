@@ -1,0 +1,314 @@
+{% extends "base.html" %}{% load compressed %}
+{% block moreStyles %}{% compressed_css 'volume' %}{% endblock %}
+{% block moreScripts %}{% compressed_js "volume_libs" %}{% endblock %}
+{% block head_title %}{{ _("NFS shared folder") }}{% endblock %}
+{% block navbar_class %}{% endblock %}
+{% block navbar %}
+  {% include "_top_bar.html" %}
+{% endblock %}
+{% block body %}
+
+<!-- Modal -->
+<div id="modal-add-nfs" class="modal hide fade">
+  <form id="form-add-nfs" method="POST" action="{% url 'volume:volume_nfs_create' %}" class="form form-horizontal form-hopebay">
+    {% csrf_token %}
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+      <h3>{{ _("Create New NFS Folder") }}</h3>
+    </div>
+    <div class="modal-body">
+      <div class="control-group">
+        <label for="modal_add_folder_name" class="control-label">{{ _("Folder name") }}:</label>
+        <div class="controls">
+          <input id="modal_add_folder_name" class="folder_name folder_unique" type="text" name="folder_name" placeholder="{{ _("1 to 100 characters") }}" minlength="1" maxlength="100" required autofocus>
+        </div>
+      </div>
+      <div class="control-group">
+        <label for="modal_add_access_right" class="control-label">{{ _("Access right") }}:</label>
+        <div class="controls">
+          <select name="permission" id="create_permission">
+              <option value="rw" selected>{{ _("Read/Write") }}</option>
+              <option value="ro">{{ _("Read-only") }}</option>
+          </select>
+        </div>
+      </div>
+      <div class="control-group">
+        <label for="modal_add_hosts_allow" class="control-label">{{ _("Allowed IP address") }}:</label>
+        <div class="controls">
+          <textarea id="modal_add_hosts_allow" class="ipv4_or_anon" name="ip_list" rows="5" placeholder="{{ _('IPv4 address (or with mask); use * for no limit.') }}" required></textarea>
+          <span class="help-block">{{ _("Use a comma to separate IP addresses.") }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="submit" id="add-nfs-submit" class="btn btn-small btn-hopebay">{{ _("Apply") }}</button>
+      <button class="btn btn-small" data-dismiss="modal" aria-hidden="true">{{ _("Cancel") }}</button>
+    </div>
+  </form>
+</div>
+
+<div id="modal-edit-nfs" class="modal hide fade">
+  <form id="form-edit-nfs" method="POST" action="{% url 'volume:volume_nfs_edit' %}" class="form form-horizontal form-hopebay">
+    {% csrf_token %}
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+      <h3>{{ _("Modify NFS Folder") }}</h3>
+    </div>
+    <div class="modal-body">
+      <div class="control-group">
+        <label for="modal_edit_folder_name" class="control-label">{{ _("Folder name") }}:</label>
+        <div class="controls">
+          <input id="modal_edit_folder_name" type="text" name="folder_name" readonly>
+        </div>
+      </div>
+      <div class="control-group">
+        <label for="modal_edit_access_right" class="control-label">{{ _("Access right") }}:</label>
+        <div class="controls">
+          <input type="hidden" name="permission" id="hidden_permission">
+          <select name="permission" id="edit_permission">
+              <option value="rw">{{ _("Read/Write") }}</option>
+              <option value="ro">{{ _("Read-only") }}</option>
+          </select>
+          <i class="fa fa-lg fa-question-circle hide" title="{{ _('Modifying permission of NAS/rsync folder is not permitted.') }}"></i>
+        </div>
+      </div>
+      <div class="control-group">
+        <label for="modal_edit_hosts_allow" class="control-label">{{ _("Allowed IP address") }}:</label>
+        <div class="controls">
+            <textarea id="modal_edit_hosts_allow" class="ipv4_or_anon" name="ip_list" rows="5" placeholder="{{ _('IPv4 address (or with mask), use * for allowing all hosts.') }}" required autofocus></textarea>
+          <span class="help-block">{{ _("Use a comma to separate IP addresses.") }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="submit" id="edit-nfs-submit" class="btn btn-small btn-hopebay">{{ _("Apply") }}</button>
+      <button class="btn btn-small" data-dismiss="modal" aria-hidden="true">{{ _("Cancel") }}</button>
+    </div>
+  </form>
+</div>
+
+<div id="modal-delete-nfs" class="modal hide fade">
+  <form id="form-remove-nfs" method="POST" action="{% url 'volume:volume_nfs_remove' %}" class="form form-horizontal form-hopebay">
+  {% csrf_token %}
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <h3>{{ _("Delete Shared Folder") }}</h3>
+  </div>
+  <div class="modal-body">
+    <input type="hidden" name="folder_name" id="delete-target">
+    <p>{{ _("All data under this folder (<b></b>) will be permanently deleted. Are you sure to continue?") }}</p>
+  </div>
+  <div class="modal-footer">
+    <label type="checkbox">
+      <input type="checkbox" name="purge">
+      {{ _("Yes, I understand the risks.") }}
+    </label>
+    <button type="submit" class="btn btn-small btn-danger delete-btn">{{ _("Delete") }}</button>
+    <button class="btn btn-small btn-hopebay" data-dismiss="modal" aria-hidden="true">{{ _("No") }}</button>
+  </div>
+  </form>
+</div>
+
+<div id="modal-alert-nas" class="modal hide fade">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <h3>{{ _("Delete External Folder") }}</h3>
+  </div>
+  <div class="modal-body">
+      <p><i class="fa fa-info-circle fa-lg"></i> {{ _("This shared folder is imported from NAS, if you would like to remove it, please remove its backup job on ") }}<a href="/backup_services/nas_backup/#/backup_services/nas_backup/">NAS Backup</a>.</p>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-small btn-hopebay" data-dismiss="modal" aria-hidden="true">{{ _("OK") }}</button>
+  </div>
+</div>
+
+<div id="modal-alert-rsync" class="modal hide fade">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <h3>{{ _("Delete External Folder") }}</h3>
+  </div>
+  <div class="modal-body">
+      <p><i class="fa fa-info-circle fa-lg"></i> {{ _("This shared folder is for rsync services, if you would like to remove it, please remove its service on ") }}<a href="/backup_services/rsync_server/#/backup_services/rsync_server/">Rsync Server</a>.</p>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-small btn-hopebay" data-dismiss="modal" aria-hidden="true">{{ _("OK") }}</button>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row-fluid">
+    {% include "sidebar.html" %}
+    <div class="span9 main-content">
+      <h3 class="content-header">{{ _("NFS Shared Folder") }}</h3>
+
+      <div class="row-fluid">
+        <div class="span12" data-role="content">
+          <table id="nfs_export" class="table table-hover">
+            <thead>
+              <tr>
+                <th class="span1"> {{ _("Export") }} </th>
+                <th class="span2"> {{ _("Folder Name") }} </th>
+                <th class="span2"> {{ _("Used Space") }} </th>
+                <th class="span2"> {{ _("Permission") }} </th>
+                <th class="span2"> {{ _("Allowed IP") }} </th>
+                <th class="span1" style="white-space: nowrap;"> {{ _("Tags") }} </th>
+                <th class="span3"> {{ _("Options") }} </th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if nfs_exports %}
+                {% for target in nfs_exports %}
+                <tr>
+                  <td class="span1">
+                  {% if target.enabled %}
+                  <input type="checkbox" class="switch-mini" data-id="{{target.folder_name}}" checked />
+                  {% else %}
+                  <input type="checkbox" class="switch-mini" data-id="{{target.folder_name}}" />
+                  {% endif %}
+                  </td>
+                  <td class="span2"> <a href="#" class="folder_link" data-id="{{target.path}}" data-name="{{target.folder_name}}" title="{{ _("Click to show mountpoint") }}">{{ target.folder_name | truncatechars:20 }}</a> </td>
+                  <td class="span2">
+                    {% if target.space_usage >= 0 %}
+                      {{ target.space_usage | filesizeformat }}
+                    {% else %}
+                    <i class="fa fa-minus-circle" title="{{ _('Not available') }}"></i>
+                    {% endif %}
+                  </td>  
+                  <td class="span2">
+                    {% if target.acl.0.permission == "rw" %} {{ _("Read/Write") }}
+                    {% elif target.acl.0.permission == "ro" %} {{ _("Read-only") }}
+                    {% else%} -
+                    {% endif %}
+                  </td>
+                  <td class="span2" style="text-overflow: ellipsis;">
+                      {% for rule in target.acl %}
+                      <code>{{rule.ip}}</code>
+                      {% endfor %}
+                  </td>
+                  <td class="span1">
+                    {% if target.for_smallfiles %}
+                    <span class="label" title="{{ _("This folder is optimized for small files") }}"> 64K </span>
+                    {% endif %}
+                    {% if target.from_nas %}
+                    <a href="/backup_services/nas_backup/#/backup_services/nas_backup/">
+                      <span class="label" title="{{ _("This folder is imported from an external NAS") }}"> NAS </span>
+                    </a>
+                    {% endif %}
+                    {% if target.for_rsync %}
+                    <a href="/backup_services/rsync_server/#/backup_services/rsync_server/">
+                      <span class="label" title="{{ _("This folder is for rsync service") }}">RSYNC</span>
+                    </a>
+                    {% endif %}
+                  </td>
+                  <td class="span3">
+                    {% if target.from_nas or target.for_rsync %}
+                    <a class="btn btn-icon btn-small btn-hopebay edit-dialog-btn" href="#modal-edit-nfs" role="button" data-id="{{target.folder_name}}" data-ip="{{target.acl_str}}" data-permission="{{target.acl.0.permission}}" data-readonly="1" data-toggle="modal" title="{{ _('Edit') }}"><span class="hopebay-icon btn-icon-edit"></a>
+                    {% else %}
+                    <a class="btn btn-icon btn-small btn-hopebay edit-dialog-btn" href="#modal-edit-nfs" role="button" data-id="{{target.folder_name}}" data-ip="{{target.acl_str}}" data-permission="{{target.acl.0.permission}}" data-readonly="0" data-toggle="modal" title="{{ _('Edit') }}"><span class="hopebay-icon btn-icon-edit"></a>
+                    {% endif %}
+                    {% if target.status == "busy" %}
+                    <a class="btn btn-icon btn-small btn-hopebay delete-dialog-btn" title="{{ _("Deleting this folder is not allowed.") }}" disabled><span class="hopebay-icon btn-icon-trash"></a>
+                    {% elif target.from_nas %}
+                    <a class="btn btn-icon btn-small btn-hopebay delete-dialog-btn" href="#modal-alert-nas" role="button" data-id="{{target.folder_name}}" data-toggle="modal" title="{{ _('Delete') }}"><span class="hopebay-icon btn-icon-trash"></a>
+                    {% elif target.for_rsync %}
+                    <a class="btn btn-icon btn-small btn-hopebay delete-dialog-btn" href="#modal-alert-rsync" role="button" data-id="{{target.folder_name}}" data-toggle="modal" title="{{ _('Delete') }}"><span class="hopebay-icon btn-icon-trash"></a>
+                    {% else %}
+                    <a class="btn btn-icon btn-small btn-hopebay delete-dialog-btn" href="#modal-delete-nfs" role="button" data-id="{{target.folder_name}}" data-toggle="modal" title="{{ _('Delete') }}"><span class="hopebay-icon btn-icon-trash"></a>
+                    {% endif %}
+                    {% if STARTER_MODE %}
+                    <a class="btn btn-small btn-hopebay" title="{{ _('Not support from starter version') }}" disabled><i class="fa fa-camera fa-lg"></i></a>
+                    {% else %}
+                    <a class="btn btn-small btn-hopebay" href="{% url 'volume:snapshot' folder_name=target.folder_name folder_type='nfs' %}" title="{{ _('Snapshot') }}"><i class="fa fa-camera fa-lg"></i></a>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="hide" id="folder_dialog" title="{{ _("Mount point") }}">
+    <div>
+        {{ _("Folder Name") }}:
+        <span id="full_path" style="font-weight: bold;word-wrap: break-word;"></span>
+    </div>
+    <div>
+        NFS {{ _("path") }}:
+        <button class="copy-button pull-right" id="copy-button-nfs" title="{{ _('copy to clipboard') }}" data-clipboard-target="folder_path"><i class="fa fa-clipboard"></i></button>
+        <input type="text" id="folder_path" class="input-block-level" readonly/>
+    </div>
+</div>
+{% endblock %}
+{% block extra_script %}
+<script>
+var mode = "{{ nfs_info.mode }}";
+var max_folders = "{{ nfs_info.max_folders }}";
+var cur_folders = "{{ nfs_info.num_folders }}";
+
+var translate = {
+    volume_nfs_toggle: "{% url 'volume:volume_nfs_toggle' %}",
+    invalid_ip: '{{ _("Please enter a valid IPv4 address!") }}',
+    nfs_info_ip: "{{ nfs_info.ip }}:",
+    init_message: '{{ _("Initializing...") }}',
+    starter_mode: '{{ _("Starter Mode") }}',
+    ext4_not_supported: '{{ _("Optimization for small files is not supported in Starter.") }}',
+    folder_limit: '{{ _("The number of NFS folders is limited.") }}',
+    yes: '{{ _("Yes") }}',
+    no: '{{ _("No") }}',
+    information_message: '{{ _("Total folder(s):") }} {{ nfs_info.num_folders }}, {{ _("total usage:") }} {{ nfs_info.total_usage | filesizeformat }}',
+    empty_message: "{{ _("No data available in table") }}",
+    create_folder_tooltip: '{{ _("Create a new folder") }}',
+}
+
+function __(str){
+    return translate[str]
+}
+
+jQuery.validator.addMethod("folder_name", function(value, element){
+  return this.optional(element) || /^\w[\w\-\.]*$/.test(value);
+}, '{{ _("Please input a valid folder name!") }}');
+
+jQuery.validator.addMethod("folder_unique", function(value, element){
+  var folder_list = [];
+{% if nfs_exports %}
+  {% for nfs_export in nfs_exports %}
+  folder_list.push("{{ nfs_export.folder_name }}".toLowerCase());
+  {% endfor %}
+{% endif %}
+  return this.optional(element) || $.inArray(value.toLowerCase(), folder_list) == -1;
+}, '{{_("This name is already exist.")}}');
+
+jQuery.validator.addMethod("ipv4_or_anon", function(value, element) {
+
+  var validate_ip = function(ip_list) {
+    var ip_array = ip_list.split(",");
+    var valid_ip = /^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/;
+    var valid_mask = /^(((0|128|192|224|240|248|252|254)\.0\.0\.0)|(255\.(0|128|192|224|240|248|252|254)\.0\.0)|(255\.255\.(0|128|192|224|240|248|252|254)\.0)|(255\.255\.255\.(0|128|192|224|240|248|252|254|255)))$|^(\d|[1-2]\d|3[0-2])$/;
+
+    for (var i=0; i<ip_array.length; i++) {
+      var ip_trim_list = ip_array[i].trim().split("/");
+
+      if (ip_trim_list.length > 2)
+        return false;
+
+      if (!valid_ip.test(ip_trim_list[0]))
+        return false;
+
+      if (ip_trim_list.length > 1 && !valid_mask.test(ip_trim_list[1]))
+        return false;
+    }
+
+    return true;
+  }
+  return this.optional(element) || /^\*$/.test(value) || validate_ip(value);
+}, '{{ _("Please enter a valid IPv4 address!") }}');
+  
+</script>
+{% compressed_js "nfs" %}
+{% include "validate_i18n.html" %}
+{% endblock %}

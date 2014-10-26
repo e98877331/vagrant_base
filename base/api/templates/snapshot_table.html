@@ -1,0 +1,64 @@
+                <tbody id="snapshot_body">
+                {% if data.snapshot_list %}
+                {% for target in data.snapshot_list %}
+                <tr>
+                  <td class="span1">
+                      <input type="checkbox" class="switch-mini" data-id="{{ target.id }}" {% if target.enabled %}checked{% endif %} {% if target.status == "queued" or target.status == "trash" %}disabled{% endif%}/>
+                  </td>
+                  <td class="span3">
+                  {% if target.end_time %}
+                  {{ target.end_time | date:"Y/m/d H:i:s" }}
+                  {% endif %}
+                  </td>
+                  <td class="span3">
+                    {% if target.filesize == 0 %}
+                    0 ({{target.filenum}} {{ _("file") }})
+                    {% elif target.filenum == 1 %}
+                    {{ target.filesize | filesizeformat}} ({{target.filenum}} {{ _("file") }})
+                    {% elif target.filesize >= 0 %}
+                    {{ target.filesize | filesizeformat}} ({{target.filenum}} {{ _("files") }})
+                    {% else %}
+                      N/A
+                    {% endif %}
+                  <td class="span1">
+                      {% if target.status == "ok" %}
+                      <i title={{_("Ok")}} class="fa fa-lg fa-check text-success"></i>
+                      {% elif target.status == "queued" %}
+                      <i title="{{_("Taking snapshot")}}" class="fa fa-lg fa-refresh fa-spin text-info"></i>
+                      {% elif target.status == "trash" %}
+                      <i title="{{_("Deleting snapshot")}}" class="fa fa-lg fa-refresh fa-spin text-error"></i>
+                      {% else %}
+                      N/A
+                      {% endif %}
+                  </td>  
+                  <td class="span3">
+                      {% if folder_type == "cifs" %}
+                        {% with "\\\\"|add:data.ip|add:"\\"|add:target.export_name as real_path%}
+                            <a class="folder_link" data-id={{target.export_name}} title={{ real_path }} href="#">{{ real_path | truncatechars:25 }}</a>
+                        {% endwith %}
+                      {% endif %}
+                      {% if folder_type == "nfs" %}
+                        {% with data.ip|add:":"|add:target.path as real_path %}
+                            <a class="folder_link" data-id={{target.path}} title={{ real_path }} href="#">{{ real_path | truncatechars:25 }}</a>
+                        {% endwith %}
+                      {% endif %}
+                  </td>
+                  <td class="span1">
+                  {% if target.status == "queued" %}
+                    <a class="btn btn-icon btn-small btn-hopebay delete-dialog-btn" title="{{ _('Cannot delete during taking snapshot') }}" disabled><span class="hopebay-icon btn-icon-trash"></a>
+                  {% elif target.status == "trash" %}
+                    <a class="btn btn-icon btn-small btn-hopebay delete-dialog-btn" title="{{ _('Deleting snapshot') }}" disabled><span class="hopebay-icon btn-icon-trash"></a>
+                  {% elif target.enabled %}
+                    <a class="btn btn-icon btn-small btn-hopebay delete-dialog-btn" title="{{ _('Cannot delete during exporting snapshot') }}" disabled><span class="hopebay-icon btn-icon-trash"></a>
+                  {% else %}
+                    <a class="btn btn-icon btn-small btn-hopebay delete-dialog-btn" href="#modal-delete-snapshot" role="button" data-id="{{target.id}}" data-toggle="modal" title="{{ _('Delete snapshot') }}"><span class="hopebay-icon btn-icon-trash"></a>
+                  {% endif %}
+                  </td>  
+                </tr>
+                {% endfor %}
+              {% else %}
+              <tr>
+                <td colspan="7"><h4 class="text-center"><i class="fa fa-lg fa-exclamation-circle"></i>&nbsp;{{ _("No snapshot exists!!") }}</h4></td>
+              </tr>
+              {% endif %}
+              </tbody>
