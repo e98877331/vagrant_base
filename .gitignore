@@ -1,0 +1,7 @@
+*.py[co]
+.vagrant
+db.sqlite3
+
+# Translations
+*.pot
+*.mo

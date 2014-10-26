@@ -25,7 +25,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # trusty 64
   config.vm.define "trusty64" do |test|
     test.vm.box = "trusty64"
-    # test.vm.box_url = "ftp://172.16.10.200/ubuntu/CloudDataSolution/ArkExpress_release/trusty64.box"
     test.vm.hostname = "trusty64"
     test.vm.network :forwarded_port, guest: 80, host: 8003
     test.vm.network :forwarded_port, guest: 443, host: 8004
