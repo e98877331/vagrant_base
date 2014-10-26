@@ -30,13 +30,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     test.vm.network :forwarded_port, guest: 80, host: 8003
     test.vm.network :forwarded_port, guest: 443, host: 8004
 
+    config.vm.provision "shell", path: "deploy/test.sh"
+
     #test.vm.provision :puppet do |puppet|
     #  puppet.facter = {
     #    "docroot" => "/vagrant/"
     #  }
-    #  puppet.manifest_file  = "box.pp"
+    #  puppet.manifest_file  = "test.pp"
     #  puppet.manifests_path = "puppet"
-      # puppet.module_path    = "deploy/puppet/recipes/modules"
     #end
   end
 
