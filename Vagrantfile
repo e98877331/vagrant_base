@@ -23,11 +23,13 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.network "public_network"
 
   # trusty 64
-  config.vm.define "trusty64" do |test|
-    test.vm.box = "trusty64"
-    test.vm.hostname = "trusty64"
-    test.vm.network :forwarded_port, guest: 80, host: 8003
-    test.vm.network :forwarded_port, guest: 443, host: 8004
+  config.vm.define "base" do |base|
+    base.vm.box = "ubuntu/trusty64"
+    base.vm.box_url = "https://vagrantcloud.com/ubuntu/boxes/trusty64/versions/1/providers/virtualbox.box"
+
+    base.vm.hostname = "base"
+    base.vm.network :forwarded_port, guest: 80, host: 8003
+    base.vm.network :forwarded_port, guest: 443, host: 8004
 
     config.vm.provision "shell", path: "deploy/test.sh"
 
