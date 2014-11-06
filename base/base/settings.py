@@ -37,7 +37,11 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # 'api',
+    'pinax_theme_bootstrap',
+    'bootstrapform',
+    'pipeline',
+    'account',
+    'IOUOI',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -48,6 +52,12 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+)
+
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.core.context_processors.i18n',
+    'django.core.context_processors.request',
+    'pinax_theme_bootstrap.context_processors.theme',
 )
 
 ROOT_URLCONF = 'base.urls'
@@ -93,3 +103,40 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+TEMPLATE_DIRS = (
+    os.path.join(BASE_DIR, 'base', "templates"),
+)
+
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'base', "static"),
+)
+# Pipeline settings
+STATICFILES_STORAGE = 'pipeline.storage.PipelineCachedStorage'
+
+PIPELINE_CSS = {
+    'base': {
+        'source_filenames': (
+            'components/bootstrap-3.3.0/css/bootstrap.css',
+        ),
+        'output_filename': 'css/base.css',
+        # 'extra_context': {
+        #    'media': 'screen,projection',
+        # },
+    },
+}
+
+
+PIPELINE_JS = {
+    'base_libs': {
+        'source_filenames': (
+            'components/jquery-2.1.1/jquery-2.1.1.js',
+            'components/bootstrap-3.3.0/js/bootstrap.js',
+        ),
+        'output_filename': 'js/base_libs.js',
+    },
+}
+
+# Account settings
+ACCOUNT_EMAIL_CONFIRMATION_REQUIRED = False
+ACCOUNT_EMAIL_CONFIRMATION_EMAIL = False

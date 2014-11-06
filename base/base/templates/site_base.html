@@ -1,0 +1,19 @@
+<!DOCTYPE html>{% load staticfiles %}{% load compressed %}
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>{% block head_title %}{% endblock %}</title>
+    <!--<link rel="shortcut icon" href="/static/img/icon.ico">-->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% compressed_css 'base' %}
+    {% block moreStyles %}{% endblock %}
+    {% compressed_js 'base_libs' %}
+    {% block moreScripts %}{% endblock %}
+  </head>
+  <body>
+    <div class="container">
+      {% block body %}{% endblock %}
+    {% block extra_script %}{% endblock %}
+  </body>
+</html>

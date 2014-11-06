@@ -2,7 +2,11 @@
 
 apt-get install --no-install-recommends -y python-pip apache2 libapache2-mod-wsgi
 
-pip install django
+pip install django django-appconf django-pipeline django-user-accounts
+
+# TODO install pinax-theme
+cd /vagrant/deploy/packages/pinax-theme/
+python setup.py install
 
 # Deploy code
 mkdir -p /opt/base/www

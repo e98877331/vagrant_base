@@ -1,0 +1,16 @@
+{% extends "site_base.html" %}{% load compressed %}
+
+{% block head_title %}Dashboard{% endblock %}
+
+{% block moreStyles %}{% endblock %}
+
+{% block body %}
+<div class="container">
+    <li class="text-box">
+        <a class="disabled" href="#"><small>{{ _("Welcome") }}, {{ request.user.username }}</small></a>
+    </li>
+    <li class="text-box">
+        <a href="{% url 'account_logout' %}"><small>{{ _("Log Out") }}</small></a>
+    </li>
+</div> <!-- /container -->
+{% endblock %}

@@ -6,7 +6,8 @@ urlpatterns = patterns('',
     # url(r'^$', 'base.views.home', name='home'),
     # url(r'^blog/', include('blog.urls')),
 
-    url(r'^admin/', include(admin.site.urls)),
-    url(r"^api/", include("api.urls", namespace="api")),
-    # url(r"^accounts/", include("account.urls")),
+    # url(r'^admin/', include(admin.site.urls)),
+    # url(r"^api/", include("api.urls", namespace="api")),
+    url(r"^$", include("IOUOI.urls")),
+    url(r"^accounts/", include("account.urls")),
 )
