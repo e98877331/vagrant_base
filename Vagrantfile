@@ -19,6 +19,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     v.gui = false
   end
 
+  #config premission
+    config.vm.synced_folder "./", "/home/vagrant/src",
+    owner: "vagrant",
+    group: "www-data",
+    mount_options: ["dmode=775,fmode=664"]
+
   # default use public network
   config.vm.network "public_network"
 
@@ -30,7 +36,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     base.vm.hostname = "base"
     base.vm.network :forwarded_port, guest: 80, host: 8003
     base.vm.network :forwarded_port, guest: 443, host: 8004
-
+    base.vm.network :forwarded_port, guest: 8000, host: 8000
+    
     config.vm.provision "shell", path: "deploy/test.sh"
 
     #test.vm.provision :puppet do |puppet|
