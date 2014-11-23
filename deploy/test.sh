@@ -13,8 +13,9 @@ cd /vagrant/deploy/packages/pinax-theme/
 python setup.py install
 
 # Deploy code
-mkdir -p /opt/base/www
-cp -rf /vagrant/base/* /opt/base/www/
+#mkdir -p /opt/base/www/
+#cp -rf /vagrant/base/* /opt/base/www/
+ln -s /home/vagrant/src/base /opt/base/www
 mkdir -p /opt/base/db
 
 python /opt/base/www/manage.py syncdb --noinput

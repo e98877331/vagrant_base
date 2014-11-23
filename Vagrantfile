@@ -26,7 +26,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     mount_options: ["dmode=775,fmode=664"]
 
   # default use public network
-  config.vm.network "public_network"
+  config.vm.network "private_network", ip: "192.168.2.115"
 
   # trusty 64
   config.vm.define "base" do |base|
