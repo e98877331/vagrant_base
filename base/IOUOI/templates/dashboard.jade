@@ -1,0 +1,94 @@
+extends site_base.html
+| {% load pipeline %}
+
+block head_title
+  | {{ _("Dashboard") }}
+endblock
+
+block moreStyles
+  {% stylesheet "iouoi" %}
+endblock
+
+block moreScripts
+  {% javascript "iouoi" %}
+endblock
+
+block body
+  .container
+    ul.nav.nav-tabs.pull-right
+      li
+        a.disabled(href="#")
+          | {{ _("Welcome") }}, {{ request.user.username }}
+      li
+        a(href="{% url 'account_logout' %}")
+          | {{ _("Log Out") }}
+
+    //
+      ul.nav.nav-tabs
+        li
+          a(href="#")
+            | len
+        li
+          a(href="#")
+            | borrow
+        li
+          a(href="#")
+            | confirm
+
+    .tab-content
+      .col-md-12
+        button(data-toggle="modal", data-target="#iou-modal")
+          | {{ _("Create") }}
+      {% for lll in lend_list %}
+      .col-md-4.lend
+        .bg-primary.text-center
+          p
+            | I owe {{ lll.name }}
+          p
+            | {{ lll.money }}
+      {% endfor %}
+      {% for bbb in borrow_list %}
+      .col-md-4.borrow
+        .bg-info.text-center
+          p
+            | {{ bbb.name }} owe me
+          p
+            | {{ bbb.money }}
+      {% endfor %}
+      {% for ccc in confirm_list %}
+      .col-md-4.event
+        .bg-warning.text-center
+          p
+            | {{ ccc.name }}
+          p
+            | {{ ccc.money }}
+          button
+            | Confirm
+          button
+            | Deny
+      {% endfor %}
+
+  .modal.fade#iou-modal
+    .modal-dialog
+      form(method="POST", action="{% url 'iou:update' %}")
+        {% csrf_token %}
+        .modal-content
+          .modal-header
+            button.close(data-dismiss="modal", aria-hidden="true")
+              | &times;
+            h3
+              | IOU
+          .modal-body
+            p(style="display: inline-block")
+              | {{ _("I") }}
+            select(name="action")
+              option lend
+              option borrow
+            input(type='email', name="target_name")
+            input(type='number', name="value", min=1)
+          .modal-footer
+            button#iou-submit.btn.btn-primary(type="submit")
+              | Apply
+            button#iou-cancel.btn.btn-default(data-dismiss="modal", aria-hidden="true")
+              | Cancel
+endblock

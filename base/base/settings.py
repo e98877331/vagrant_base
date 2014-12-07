@@ -128,6 +128,12 @@ PIPELINE_CSS = {
         #    'media': 'screen,projection',
         # },
     },
+    'iouoi': {
+        'source_filenames': (
+            'css/IOUOI/iouoi.css',
+        ),
+        'output_filename': 'css/iouoi.css',
+    },
 }
 
 
@@ -139,8 +145,22 @@ PIPELINE_JS = {
         ),
         'output_filename': 'js/base_libs.js',
     },
+    'iouoi': {
+        'source_filenames': (
+            'js/iouoi/iouoi.js',
+        ),
+        'output_filename': 'js/iouoi.js',
+    },
 }
 
 # Account settings
 ACCOUNT_EMAIL_CONFIRMATION_REQUIRED = False
 ACCOUNT_EMAIL_CONFIRMATION_EMAIL = False
+
+# jade template loader
+TEMPLATE_LOADERS = (
+    ('pyjade.ext.django.Loader', (
+        'django.template.loaders.filesystem.Loader',
+        'django.template.loaders.app_directories.Loader',
+    )),
+)

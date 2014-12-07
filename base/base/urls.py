@@ -8,6 +8,7 @@ urlpatterns = patterns('',
 
     # url(r'^admin/', include(admin.site.urls)),
     # url(r"^api/", include("api.urls", namespace="api")),
-    url(r"^$", include("IOUOI.urls")),
+    url(r"^$", 'IOUOI.views.index'),
+    url(r"^iou/", include("IOUOI.urls", namespace="iou")),
     url(r"^accounts/", include("account.urls")),
 )
