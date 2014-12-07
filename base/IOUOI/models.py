@@ -13,34 +13,22 @@ from django.contrib.auth.models import AbstractUser
 #
 
 class MyUser(AbstractUser):
-    UserId = models.CharField(max_length=20)
+    userId = models.CharField(max_length=20)
 
     def __str__(self):              # __unicode__ on Python 2
-        return str(self.UserId)
+        return str(self.userId)
     
     def lendTo(self,userTo, value):
         from IOUOI import IOUHelper
         IOUHelper.IOUHelper.lendTo(self, userTo, value)
 
-
-class Lender(models.Model):
-    lendFrom = models.ForeignKey(MyUser , related_name='lendFrom_set')
+class MoneyRecord(models.Model):
+    borrowFrom = models.ForeignKey(MyUser , related_name='borrowFrom_set')
     lendTo = models.ForeignKey(MyUser , related_name='lendTo_set')
     value = models.IntegerField()
 
     def __str__(self):              # __unicode__ on Python 2
-        return str(self.lendFrom) + " to " + str(self.lendTo) + " " + str(self.value)  
-
-
-
-class Borrower(models.Model):
-    borrowFrom = models.ForeignKey(MyUser , related_name='borrowFrom_set')
-    borrowTo = models.ForeignKey(MyUser , related_name='borrowTo_set')
-    value = models.IntegerField()
-
-    def __str__(self):              # __unicode__ on Python 2
-        return str(self.borrowFrom) + " to " + str(self.borrowTo) + " " + str(self.value)
-
+        return str(self.borrowFrom) + " to " + str(self.lendTo) + " " + str(self.value)  
 
 
 class EventQueue(models.Model):

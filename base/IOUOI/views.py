@@ -1,6 +1,8 @@
 from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_protect, requires_csrf_token
+from IOUOI.models import MoneyRecord, MyUser
+
 
 @login_required
 @requires_csrf_token
@@ -9,11 +11,13 @@ def index(request):
     user_name = request.user.username
 
     # mock
-    #TODO get lend list
-    lend_list = [
-        {'name': 'Michael', 'money': 15},
-        {'name': 'Pajamas', 'money': 100},
-    ]
+    #TODO get lend list 
+    #lend_list = [
+    #    {'name': 'Michael', 'money': 15},
+    #    {'name': 'Pajamas', 'money': 100},
+    #]
+    
+
     # mock
     #TODO get borrow list
     borrow_list = [
