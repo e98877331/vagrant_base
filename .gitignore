@@ -8,5 +8,7 @@ db.sqlite3
 
 .cache
 .cloud-locale-test.skip
+*.swp
+
 
 venv
