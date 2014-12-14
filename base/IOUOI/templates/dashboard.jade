@@ -48,11 +48,11 @@ block body
           p {{ _("I owe") }} {{ item.borrowFrom }}
           p {{ item.value }}
       {% endfor %}
-      {% for ccc in confirm_list %}
-      .col-md-4.event(onclick="confirm_iou()")
+      {% for item in confirm_list %}
+      .col-md-4.event(onclick="confirm_iou('{{ item.id }}')")
         .bg-warning.text-center
-          p {{ ccc.senderId }}
-          p {{ ccc.value }}
+          p {{ item.senderId }}
+          p {{ item.value }}
       {% endfor %}
 
   .modal.fade#iou-modal
@@ -82,7 +82,7 @@ block body
 
   .modal.fade#confirm-modal
     .modal-dialog
-      form(method="POST", action="")
+      form(method="POST", action="{% url 'iou:event_actions' %}")
         {% csrf_token %}
         .modal-content
           .modal-header
@@ -91,10 +91,10 @@ block body
             h3
               | {{ _("Confirm") }}
           .modal-body
-            p(style="display: inline-block")
-              | {{ _("I") }}
+            input(name="event_id", type="hidden")
+            p {{ _("Are you sure to confirm this record? ") }}
           .modal-footer
-            button#iou-submit.btn.btn-primary(type="submit")
-              | Apply
+            input#iou-confirm-submit.btn.btn-primary(type="submit", name="confirm", value="Confirm")
+            input#iou-deny-submit.btn.btn-danger(type="submit", name="deny", value="Deny")
             button#iou-cancel.btn.btn-default(data-dismiss="modal", aria-hidden="true")
-              | Cancel
+              | Ignore

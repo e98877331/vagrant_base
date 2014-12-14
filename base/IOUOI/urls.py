@@ -7,5 +7,5 @@ urlpatterns = patterns(
     url(r'^$', views.index, name="home"),
     url(r'^/$', views.index, name="home"),
     url(r'^update$', views.iou_update, name="update"),
-    url(r'^event/(?P<action>(confirm||deny))$', views.event_actions, name="event_actions"),
+    url(r'^event$', views.event_actions, name="event_actions"),
 )

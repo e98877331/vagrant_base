@@ -1,38 +1,28 @@
 from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_protect, requires_csrf_token
-from IOUOI.models import MyUser
+from IOUOI.models import MyUser, EventQueue
+from django.core.exceptions import ObjectDoesNotExist
 
 
 @login_required
 @requires_csrf_token
 def index(request):
     # get user name from request
-    user_obj = MyUser.objects.get(username=request.user.username)
-    i_am_from = user_obj.borrowFrom_set.all()
-    i_am_to = user_obj.lendTo_set.all()
+    my_name = request.user.username
 
-    # mock
-    # TODO get lend list
-    '''lend_list = [
-        {'lendTo': 'michael@gmail.com', 'value': 15},
-        {'lendTo': 'pajamas@yahoo.com.tw', 'value': 100},
-    ]
+    # Get user object
+    my_obj = MyUser.objects.get(username=my_name)
 
-    # mock
-    #TODO get borrow list
-    borrow_list = [
-        {'borrowFrom': 'cm@gmail.com', 'value': 50},
-        {'borrowFrom': 'ornage@yahoo.com.tw', 'value': 22},
-    ]'''
-    # mock
-    # TODO get event list
-    confirm_list = [
-        {'senderId': 'aaa@gmail.com', 'value': 10},
-        {'senderId': 'aaa@gmail.com', 'value': -10},
-    ]
+    # Get the list which I lend to
+    i_am_from = my_obj.borrowFrom_set.all()
 
-    # return render(request, "index.html", {
+    # Get the list which I borrow from
+    i_am_to = my_obj.lendTo_set.all()
+
+    # Get confirm event list
+    confirm_list = my_obj.eventQueueReceiver_set.all()
+
     return render(request, "dashboard.jade", {
         'i_am_from': i_am_from,
         'i_am_to': i_am_to,
@@ -41,23 +31,31 @@ def index(request):
 
 
 @login_required
-def event_actions(request, action):
+def event_actions(request):
     """"""
     # get user name from request
-    user_name = request.user.username
+    event_obj = EventQueue.objects.get(pk=request.POST['event_id'])
 
-    # TODO get target name from request
+    my_obj = event_obj.receiverId
+    target_obj = event_obj.senderId
 
-    # TODO Call api
+    action = 'confirm' if 'confirm' in request.POST else 'deny'
+    # Call api
     if action == 'confirm':
-        pass
+        if event_obj.value > 0:
+            target_obj.lendTo(my_obj, event_obj.value)
+        elif event_obj.value < 0:
+            my_obj.lendTo(target_obj, -event_obj.value)
+        else:
+            raise Exception("Value cannot be zero")
     elif action == 'deny':
         pass
     else:
-        # TODO return error
-        pass
+        raise Exception("Wrong method, should be 'confirm' or 'deny'")
 
-    return
+    event_obj.delete()
+
+    return redirect('iou:home')
 
 
 @login_required
@@ -84,15 +82,12 @@ def iou_update(request):
         print '        %s' % value
 
         # Call api
-        me = MyUser.objects.get(username=user_name)
-        target = MyUser.objects.get(email=target_name)
+        my_obj = MyUser.objects.get(username=user_name)
+        target_obj = MyUser.objects.get(email=target_name)
 
-        if action == 'lend':
-            me.lendTo(userTo=target, value=value)
-        elif action == "borrow":
-            me.borrowFrom(userTo=target, value=value)
-        else:
-            # TODO wrong action
-            pass
+        if action == 'borrow':
+            value = -value
+
+        EventQueue(senderId=my_obj, receiverId=target_obj, value=value).save()
 
     return redirect('iou:home')

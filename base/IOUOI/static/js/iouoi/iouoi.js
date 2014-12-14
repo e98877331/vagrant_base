@@ -55,6 +55,8 @@ function update_iou(target_name){
   $('#iou-modal').modal('show');
 };
 
-function confirm_iou(){
+function confirm_iou(event_id){
+  $('#confirm-modal input[name="event_id"]').val(event_id);
 
+  $('#confirm-modal').modal('show');
 };

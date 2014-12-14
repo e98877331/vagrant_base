@@ -41,6 +41,6 @@ class EventQueue(models.Model):
     value = models.IntegerField()
  
     def __str__(self):              # __unicode__ on Python 2
-        return self.receiverId + " " + self.senderId
+        return str(self.receiverId) + " " + str(self.senderId)
 
 
