@@ -3,15 +3,12 @@ extends site_base.html
 
 block head_title
   | {{ _("Dashboard") }}
-endblock
 
 block moreStyles
   {% stylesheet "iouoi" %}
-endblock
 
 block moreScripts
   {% javascript "iouoi" %}
-endblock
 
 block body
   .container
@@ -37,40 +34,30 @@ block body
 
     .tab-content
       .col-md-12
-        button(data-toggle="modal", data-target="#iou-modal")
+        button(onclick="update_iou()")
           | {{ _("Create") }}
-      {% for lll in lend_list %}
-      .col-md-4.lend
+      {% for item in i_am_from %}
+      .col-md-4.lend(onclick="update_iou('{{ item.lendTo }}')")
         .bg-primary.text-center
-          p
-            | I owe {{ lll.name }}
-          p
-            | {{ lll.money }}
+          p {{ item.lendTo }} {{ _("owe me") }}
+          p {{ item.value }}
       {% endfor %}
-      {% for bbb in borrow_list %}
-      .col-md-4.borrow
+      {% for item in i_am_to %}
+      .col-md-4.borrow(onclick="update_iou('{{ item.borrowFrom }}')")
         .bg-info.text-center
-          p
-            | {{ bbb.name }} owe me
-          p
-            | {{ bbb.money }}
+          p {{ _("I owe") }} {{ item.borrowFrom }}
+          p {{ item.value }}
       {% endfor %}
       {% for ccc in confirm_list %}
-      .col-md-4.event
+      .col-md-4.event(onclick="confirm_iou()")
         .bg-warning.text-center
-          p
-            | {{ ccc.name }}
-          p
-            | {{ ccc.money }}
-          button
-            | Confirm
-          button
-            | Deny
+          p {{ ccc.senderId }}
+          p {{ ccc.value }}
       {% endfor %}
 
   .modal.fade#iou-modal
     .modal-dialog
-      form(method="POST", action="{% url 'iou:update' %}")
+      form#form_iou_update(method="POST", action="{% url 'iou:update' %}")
         {% csrf_token %}
         .modal-content
           .modal-header
@@ -85,10 +72,29 @@ block body
               option lend
               option borrow
             input(type='email', name="target_name")
-            input(type='number', name="value", min=1)
+            input(type='number', name="value")
+            #errors(style="color: red;")
           .modal-footer
             button#iou-submit.btn.btn-primary(type="submit")
               | Apply
             button#iou-cancel.btn.btn-default(data-dismiss="modal", aria-hidden="true")
               | Cancel
-endblock
+
+  .modal.fade#confirm-modal
+    .modal-dialog
+      form(method="POST", action="")
+        {% csrf_token %}
+        .modal-content
+          .modal-header
+            button.close(data-dismiss="modal", aria-hidden="true")
+              | &times;
+            h3
+              | {{ _("Confirm") }}
+          .modal-body
+            p(style="display: inline-block")
+              | {{ _("I") }}
+          .modal-footer
+            button#iou-submit.btn.btn-primary(type="submit")
+              | Apply
+            button#iou-cancel.btn.btn-default(data-dismiss="modal", aria-hidden="true")
+              | Cancel

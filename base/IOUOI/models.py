@@ -22,6 +22,10 @@ class MyUser(AbstractUser):
         from IOUOI import IOUHelper
         IOUHelper.IOUHelper.lendTo(self, userTo, value)
 
+    def borrowFrom(self, userTo, value):
+        from IOUOI import IOUHelper
+        IOUHelper.IOUHelper.borrowFrom(self, userTo, value)
+
 class MoneyRecord(models.Model):
     borrowFrom = models.ForeignKey(MyUser , related_name='borrowFrom_set')
     lendTo = models.ForeignKey(MyUser , related_name='lendTo_set')

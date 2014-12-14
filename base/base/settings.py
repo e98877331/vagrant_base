@@ -142,6 +142,7 @@ PIPELINE_JS = {
         'source_filenames': (
             'components/jquery-2.1.1/jquery-2.1.1.js',
             'components/bootstrap-3.3.0/js/bootstrap.js',
+            'components/jquery-validator/jquery.validate.js'
         ),
         'output_filename': 'js/base_libs.js',
     },

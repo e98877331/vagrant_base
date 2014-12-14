@@ -51,6 +51,8 @@ class IOUHelper:
                 MoneyRecord(borrowFrom=userTo,lendTo=userMe,value=-result).save()
                 if status == 0:
                     ldr.delete()
+        elif result == 0:
+            ldr.delete()
 
     @staticmethod
     def borrowFrom(userMe,userFrom,value):
