@@ -12,10 +12,10 @@ def index(request):
 
     # mock
     #TODO get lend list 
-    #lend_list = [
-    #    {'name': 'Michael', 'money': 15},
-    #    {'name': 'Pajamas', 'money': 100},
-    #]
+    lend_list = [
+        {'name': 'Michael', 'money': 15},
+        {'name': 'Pajamas', 'money': 100},
+    ]
     
 
     # mock

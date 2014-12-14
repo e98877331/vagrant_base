@@ -16,7 +16,7 @@ class MyUser(AbstractUser):
     userId = models.CharField(max_length=20)
 
     def __str__(self):              # __unicode__ on Python 2
-        return str(self.userId)
+        return str(self.username)
     
     def lendTo(self,userTo, value):
         from IOUOI import IOUHelper
