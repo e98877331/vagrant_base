@@ -1,4 +1,5 @@
-from IOUOI.models import MyUser, MoneyRecord
+#from IOUOI.models import MyUser, MoneyRecord
+import models as md
 from django.core.exceptions import ObjectDoesNotExist
 
 class IOUHelper:
@@ -6,12 +7,12 @@ class IOUHelper:
         pass
 
     def showCurrentInfo(self):
-        print MyUser.objects.all()
+        print md.MyUser.objects.all()
 
     @staticmethod
     def showCurrentInfoS():
         print "static method called"
-        print MyUser.objects.all()
+        print md.MyUser.objects.all()
      
     
     @staticmethod
@@ -22,12 +23,12 @@ class IOUHelper:
         status = -1 
 
         try:
-            ldr = MoneyRecord.objects.get(borrowFrom=userMe,lendTo=userTo)
+            ldr = md.MoneyRecord.objects.get(borrowFrom=userMe,lendTo=userTo)
             currentValue = ldr.value
             status = 0   
         except ObjectDoesNotExist:
             try:
-                ldr = MoneyRecord.objects.get(borrowFrom=userTo,lendTo=userMe)
+                ldr = md.MoneyRecord.objects.get(borrowFrom=userTo,lendTo=userMe)
                 currentValue = - ldr.value
                 status = 1
             except ObjectDoesNotExist:
@@ -40,7 +41,7 @@ class IOUHelper:
                 ldr.value =result
                 ldr.save()
             else:
-                MoneyRecord(borrowFrom=userMe,lendTo=userTo,value=result).save()
+                md.MoneyRecord(borrowFrom=userMe,lendTo=userTo,value=result).save()
                 if status == 1:
                     ldr.delete()
         elif result < 0:
@@ -48,7 +49,7 @@ class IOUHelper:
                 ldr.value = -result
                 ldr.save()
             else:
-                MoneyRecord(borrowFrom=userTo,lendTo=userMe,value=-result).save()
+                md.MoneyRecord(borrowFrom=userTo,lendTo=userMe,value=-result).save()
                 if status == 0:
                     ldr.delete()
         elif result == 0:

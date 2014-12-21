@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
+import IOUHelper as helper
 #import IOUOI.IOUHelper
 # Create your models here.
 
@@ -19,12 +20,10 @@ class MyUser(AbstractUser):
         return str(self.username)
     
     def lendTo(self,userTo, value):
-        from IOUOI import IOUHelper
-        IOUHelper.IOUHelper.lendTo(self, userTo, value)
+        helper.IOUHelper.lendTo(self, userTo, value)
 
     def borrowFrom(self, userTo, value):
-        from IOUOI import IOUHelper
-        IOUHelper.IOUHelper.borrowFrom(self, userTo, value)
+        helper.IOUHelper.borrowFrom(self, userTo, value)
 
 class MoneyRecord(models.Model):
     borrowFrom = models.ForeignKey(MyUser , related_name='borrowFrom_set')
