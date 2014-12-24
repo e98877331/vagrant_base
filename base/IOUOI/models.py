@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.utils import timezone
 
 import IOUHelper as helper
 # import IOUOI.IOUHelper
@@ -43,13 +44,34 @@ class EventQueue(models.Model):
     senderId = models.ForeignKey(MyUser, related_name='eventQueueSender_set')
     value = models.IntegerField()
     message = models.CharField(max_length=80, default="")
-    createDate = models.DateTimeField()
+    createDate = models.DateTimeField(auto_now_add=True)
 
     def accept(self):
-        print "TODO accept"
+        if self.value > 0:
+            self.senderId.lendTo(self.receiverId, self.value)
+        elif self.value < 0:
+            self.receiverId.lendTo(self.senderId, -self.value)
+        else:
+            raise Exception("Value cannot be zero")
+
+        eh = EventHistory(receiverId=self.receiverId,
+                          senderId=self.senderId,
+                          value=self.value,
+                          message=self.message,
+                          status=EventHistory.ACCEPT,
+                          createDate=timezone.now())
+        eh.save()
+        self.delete()
 
     def deny(self):
-        print "TODO deny"
+        eh = EventHistory(receiverId=self.receiverId,
+                          senderId=self.senderId,
+                          value=self.value,
+                          message=self.message,
+                          status=EventHistory.DENY,
+                          createDate=timezone.now())
+        eh.save()
+        self.delete()
 
     def __str__(self):              # __unicode__ on Python 2
         return str(self.receiverId) + " " + str(self.senderId) + " " + \
@@ -77,4 +99,3 @@ class EventHistory(models.Model):
     def __str__(self):              # __unicode__ on Python 2
         return str(self.receiverId) + " " + str(self.senderId) + " " + \
             self.message
-
