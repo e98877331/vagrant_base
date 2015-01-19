@@ -6,9 +6,9 @@ def createTestData():
     u3 = MyUser.objects.create_user('testuser3','testuser3@gmail.com','abcd1234')
     u4 = MyUser.objects.create_user('testuser4','testuser4@gmail.com','abcd1234')
     u5 = MyUser.objects.create_user('testuser5','testuser5@gmail.com','abcd1234')
-    
+
     r12 = MoneyRecord(borrowFrom = u1, lendTo = u2, value = 12)
-    r13 = MoneyRecord(borrowFrom = u1, lendTo = u2, value = 13)
+    r13 = MoneyRecord(borrowFrom = u1, lendTo = u3, value = 13)
     r41 = MoneyRecord(borrowFrom = u4, lendTo = u1, value = 41)
     r23 = MoneyRecord(borrowFrom = u2, lendTo = u3, value = 23)
     r12.save()

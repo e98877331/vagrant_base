@@ -27,6 +27,14 @@ class MyUser(AbstractUser):
     def borrowFrom(self, userTo, value):
         helper.IOUHelper.borrowFrom(self, userTo, value)
 
+    def sendEvent(self, userTo, value, message="no message"):
+        event = EventQueue(receiverId=userTo,
+                           senderId=self,
+                           value=value,
+                           message=message,
+                           createDate=timezone.now()
+                           )
+        event.save()
 
 class MoneyRecord(models.Model):
     borrowFrom = models.ForeignKey(MyUser, related_name='borrowFrom_set')
