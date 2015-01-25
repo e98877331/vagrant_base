@@ -1,3 +1,0 @@
-[submodule "deploy/packages/pinax-theme"]
-	path = deploy/packages/pinax-theme
-	url = https://github.com/pinax/pinax-theme-bootstrap.git

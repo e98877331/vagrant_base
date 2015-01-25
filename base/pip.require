@@ -1,0 +1,5 @@
+django
+django-appconf
+django-pipeline
+django-user-accounts
+pyjade

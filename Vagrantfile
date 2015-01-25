@@ -26,7 +26,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     mount_options: ["dmode=775,fmode=664"]
 
   # default use public network
-  config.vm.network "private_network", ip: "192.168.2.115"
+  # config.vm.network "private_network", ip: "192.168.2.115"
 
   # trusty 64
   config.vm.define "base" do |base|
@@ -38,15 +38,20 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     base.vm.network :forwarded_port, guest: 443, host: 8004
     base.vm.network :forwarded_port, guest: 8000, host: 8000
     
-    config.vm.provision "shell", path: "deploy/test.sh"
+    config.vm.provision :shell do |shell|
+      shell.inline = "mkdir -p /etc/puppet/modules
+        apt-get install -y puppet-common
+        (puppet module list |grep  puppetlabs-apt) || puppet module install puppetlabs-apt --version 1.7.0
+        (puppet module list |grep  stankevich-python) || puppet module install stankevich-python --version 1.8.2"
+    end
 
-    #test.vm.provision :puppet do |puppet|
-    #  puppet.facter = {
-    #    "docroot" => "/vagrant/"
-    #  }
-    #  puppet.manifest_file  = "test.pp"
-    #  puppet.manifests_path = "puppet"
-    #end
+    base.vm.provision :puppet do |puppet|
+      puppet.facter = {
+        "docroot" => "/vagrant/"
+      }
+      puppet.manifest_file  = "base.pp"
+      puppet.manifests_path = "deploy/puppet/manifests"
+    end
   end
 
 end

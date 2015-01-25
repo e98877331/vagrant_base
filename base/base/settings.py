@@ -154,6 +154,9 @@ PIPELINE_JS = {
     },
 }
 
+PIPELINE_CSS_COMPRESSOR = 'pipeline.compressors.NoopCompressor'
+PIPELINE_JS_COMPRESSOR = 'pipeline.compressors.NoopCompressor'
+
 # Account settings
 ACCOUNT_EMAIL_CONFIRMATION_REQUIRED = False
 ACCOUNT_EMAIL_CONFIRMATION_EMAIL = False
