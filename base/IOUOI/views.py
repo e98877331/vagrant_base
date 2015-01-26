@@ -3,16 +3,14 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_protect, requires_csrf_token
 from IOUOI.models import MyUser, EventQueue
 from django.core.exceptions import ObjectDoesNotExist
-
+import pdb
 
 @login_required
 @requires_csrf_token
 def index(request):
-    # get user name from request
-    my_name = request.user.username
 
     # Get user object
-    my_obj = MyUser.objects.get(username=my_name)
+    my_obj = request.user
 
     # Get the list which I lend to
     i_am_from = my_obj.borrowFrom_set.all()
@@ -36,24 +34,14 @@ def event_actions(request):
     # get user name from request
     event_obj = EventQueue.objects.get(pk=request.POST['event_id'])
 
-    my_obj = event_obj.receiverId
-    target_obj = event_obj.senderId
-
     action = 'confirm' if 'confirm' in request.POST else 'deny'
     # Call api
     if action == 'confirm':
-        if event_obj.value > 0:
-            target_obj.lendTo(my_obj, event_obj.value)
-        elif event_obj.value < 0:
-            my_obj.lendTo(target_obj, -event_obj.value)
-        else:
-            raise Exception("Value cannot be zero")
+        event_obj.accept()
     elif action == 'deny':
-        pass
+        event_obj.deny()
     else:
         raise Exception("Wrong method, should be 'confirm' or 'deny'")
-
-    event_obj.delete()
 
     return redirect('iou:home')
 
@@ -63,31 +51,14 @@ def event_actions(request):
 def iou_update(request):
     """"""
     if request.method == "POST":
-        print '=========='
-        print 'POST data:'
-        # get user name from request
-        user_name = request.user.username
-        print '        %s' % user_name
-
-        # get target name from request
-        target_name = request.POST['target_name']
-        print '        %s' % target_name
-
-        # get action from request (lend or borrow)
+        user = request.user
+        # TODO change target_name to target_email
+        targetUserName = request.POST['target_name']
+        targetUser = MyUser.objects.get(email=targetUserName)
         action = request.POST['action']
-        print '        %s' % action
-
-        # get value from request
         value = int(request.POST['value'])
-        print '        %s' % value
-
-        # Call api
-        my_obj = MyUser.objects.get(username=user_name)
-        target_obj = MyUser.objects.get(email=target_name)
-
         if action == 'borrow':
             value = -value
-
-        EventQueue(senderId=my_obj, receiverId=target_obj, value=value).save()
+        user.sendEvent(targetUser, value)
 
     return redirect('iou:home')
