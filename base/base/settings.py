@@ -122,6 +122,7 @@ PIPELINE_CSS = {
     'base': {
         'source_filenames': (
             'components/bootstrap-3.3.0/css/bootstrap.css',
+            'components/jquery-mmenu/jquery.mmenu.css'
         ),
         'output_filename': 'css/base.css',
         # 'extra_context': {
@@ -142,7 +143,8 @@ PIPELINE_JS = {
         'source_filenames': (
             'components/jquery-2.1.1/jquery-2.1.1.js',
             'components/bootstrap-3.3.0/js/bootstrap.js',
-            'components/jquery-validator/jquery.validate.js'
+            'components/jquery-validator/jquery.validate.js',
+            'components/jquery-mmenu/jquery.mmenu.min.js'
         ),
         'output_filename': 'js/base_libs.js',
     },

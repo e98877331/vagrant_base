@@ -1,4 +1,6 @@
 $(document).ready(function() {
+  $("#my-menu").mmenu();
+
   var form_iou = $('#form_iou_update').validate({
     /*highlight: function(label) {
       $(label).closest('.control-group').addClass('error');

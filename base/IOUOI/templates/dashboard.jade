@@ -11,17 +11,27 @@ block moreScripts
   {% javascript "iouoi" %}
 
 block body
-  .container
-    ul.nav.nav-tabs.pull-right
-      li
-        a.disabled(href="#")
-          | {{ _("Welcome") }}, {{ request.user.username }}
-      li
-        a(href="{% url 'account_logout' %}")
-          | {{ _("Log Out") }}
+  //
+    .container
+      ul.nav.nav-tabs.pull-right
+        li
+          a.disabled(href="#")
+            | {{ _("Welcome") }}, {{ request.user.username }}
+        li
+          a(href="{% url 'account_logout' %}")
+            | {{ _("Log Out") }}
 
-    //
-      ul.nav.nav-tabs
+  div
+    nav.navbar.navbar-default
+      .container-fluid
+        div.navbar-header
+          a.navbar-toggle.collapsed(type="button",
+            data-toggle="collapse", data-target="#bs-example-navbar-collapse-1",
+            href="#my-menu"
+          )
+
+    nav#my-menu
+      ul
         li
           a(href="#")
             | len
