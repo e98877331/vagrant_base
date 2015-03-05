@@ -10,6 +10,7 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+import pdb
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 #cyy shouldn this  declare here?
@@ -46,6 +47,7 @@ INSTALLED_APPS = (
     'pipeline',
     'account',
     'IOUOI',
+    'base'
 )
 
 MIDDLEWARE_CLASSES = (
@@ -56,12 +58,15 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "account.middleware.LocaleMiddleware",
+    "account.middleware.TimezoneMiddleware",
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',
     'django.core.context_processors.i18n',
     'django.core.context_processors.request',
+    "account.context_processors.account",
     'pinax_theme_bootstrap.context_processors.theme',
 )
 
@@ -108,7 +113,6 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-
 TEMPLATE_DIRS = (
     os.path.join(BASE_DIR, 'base', "templates"),
 )
