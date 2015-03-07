@@ -1,24 +1,9 @@
 {% extends "theme_bootstrap/base.html" %}
 {% load staticfiles %}
 
-{% block nav %}
-<ul class="nav navbar-nav navbar-left">
-  <li><a href="#">Link 1</a>
-  <li><a href="#">Link 2</a>
-</ul>
-{% endblock %}
-
 {% block extra_style %}
 <link rel="stylesheet" type="text/css" href="{% static '/css/style.css' %}" />
-
-<!--<style>
-.cyy {
-    background-color: red;
-}
-</style>-->
 {% endblock %}
-
-{% block navbar_class %}navbar-fixed-top cyy{% endblock %}
 
 {%  block footer %}
 

@@ -1,4 +1,5 @@
 {% load staticfiles %}
+{% load pipeline %}
 {% load url from future %}
 <!DOCTYPE html>
 <html lang="{{ LANGUAGE_CODE }}">
@@ -10,11 +11,8 @@
         {% endblock %}
 
         {% block style_base %}
-            <link href="{% static "pinax/css/theme.css" %}" rel="stylesheet">
-            <link href="{% static "bootstrap/css/bootstrap.css" %}" rel="stylesheet">
-            <link href="{% static "font-awesome/css/font-awesome.css" %}" rel="stylesheet">
-            <link href="{% static "css/cyy.css" %}" rel="stylesheet"> 
-            {% block extra_style %}{% endblock %}
+          {% stylesheet "base" %}
+          {% block extra_style %}{% endblock %}
         {% endblock %}
 
         {% block html5shim %}
@@ -43,6 +41,7 @@
                                 {% block site_brand %}<a class="navbar-brand" href="{% url "home" %}">{{ SITE_NAME }}</a>{% endblock %}
                             </div>
                             <div class="collapse navbar-collapse navbar-responsive-collapse">
+                                {% block account_bar %}{% include "_account_bar.html" %}{% endblock %}
                                 {% block nav %}
                                     {% comment %}
                                         <ul class="nav navbar-nav">
@@ -51,7 +50,6 @@
                                         </ul>
                                     {% endcomment %}
                                 {% endblock %}
-                                {% block account_bar %}{% include "_account_bar.html" %}{% endblock %}
                             </div>
                         {% endblock %}
                         </div>
@@ -80,10 +78,8 @@
         </div>
 
         {% block script_base %}
-            <script src="{% block jquery_src %}{% static "jquery/js/jquery-2.1.1.min.js" %}{% endblock %}"></script>
-            <script src="{% static "bootstrap/js/bootstrap.min.js" %}"></script>
-            <script src="{% static "pinax/js/theme.js" %}"></script>
-            {% block extra_script %}{% endblock %}
+          {% javascript "base_libs" %}
+          {% block extra_script %}{% endblock %}
         {% endblock %}
 
         {% block extra_body_base %}

@@ -68,6 +68,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.request',
     "account.context_processors.account",
     'pinax_theme_bootstrap.context_processors.theme',
+    'IOUOI.context_processors.mode',
 )
 
 ROOT_URLCONF = 'base.urls'
@@ -77,15 +78,6 @@ WSGI_APPLICATION = 'base.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
-
-'''DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'OPTIONS': {
-            'read_default_file': '/path/to/my.cnf',
-        },
-    }
-}'''
 
 DATABASES = {
     'default': {
@@ -127,7 +119,9 @@ PIPELINE_CSS = {
     'base': {
         'source_filenames': (
             'components/bootstrap-3.3.0/css/bootstrap.css',
-            'components/jquery-mmenu/jquery.mmenu.css'
+            'components/jquery-mmenu/jquery.mmenu.css',
+            'components/font-awesome/css/font-awesome.min.css',
+            'pinax/css/theme.css',
         ),
         'output_filename': 'css/base.css',
         # 'extra_context': {
@@ -149,7 +143,8 @@ PIPELINE_JS = {
             'components/jquery-2.1.1/jquery-2.1.1.js',
             'components/bootstrap-3.3.0/js/bootstrap.js',
             'components/jquery-validator/jquery.validate.js',
-            'components/jquery-mmenu/jquery.mmenu.min.js'
+            'components/jquery-mmenu/jquery.mmenu.min.js',
+            'pinax/js/theme.js'
         ),
         'output_filename': 'js/base_libs.js',
     },

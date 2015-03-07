@@ -4,66 +4,42 @@ extends site_base.html
 block head_title
   | {{ _("Dashboard") }}
 
-block moreStyles
+block extra_style
   {% stylesheet "iouoi" %}
 
-block moreScripts
+block extra_script
   {% javascript "iouoi" %}
 
+block nav
+  ul.nav.navbar-nav.navbar-right
+    li
+      a(style="cursor: pointer;", onClick="update_iou()")
+        span.glyphicon.glyphicon-plus(aria-hidden="true")
+    li
+      a
+        span.glyphicon.glyphicon-envelope
+        span.badge {{ confirm_list | length }}
+
 block body
-  //
-    .container
-      ul.nav.nav-tabs.pull-right
-        li
-          a.disabled(href="#")
-            | {{ _("Welcome") }}, {{ request.user.username }}
-        li
-          a(href="{% url 'account_logout' %}")
-            | {{ _("Log Out") }}
-
-  div
-    nav.navbar.navbar-default
-      .container-fluid
-        div.navbar-header
-          a.navbar-toggle.collapsed(type="button",
-            data-toggle="collapse", data-target="#bs-example-navbar-collapse-1",
-            href="#my-menu"
-          )
-
-    nav#my-menu
-      ul
-        li
-          a(href="#")
-            | len
-        li
-          a(href="#")
-            | borrow
-        li
-          a(href="#")
-            | confirm
-
-    .tab-content
-      .col-md-12
-        button(onclick="update_iou()")
-          | {{ _("Create") }}
-      {% for item in i_am_from %}
-      .col-md-4.lend(onclick="update_iou('{{ item.lendTo }}')")
-        .bg-primary.text-center
-          p {{ item.lendTo }} {{ _("owe me") }}
-          p {{ item.value }}
-      {% endfor %}
-      {% for item in i_am_to %}
-      .col-md-4.borrow(onclick="update_iou('{{ item.borrowFrom }}')")
-        .bg-info.text-center
-          p {{ _("I owe") }} {{ item.borrowFrom }}
-          p {{ item.value }}
-      {% endfor %}
-      {% for item in confirm_list %}
-      .col-md-4.event(onclick="confirm_iou('{{ item.id }}')")
-        .bg-warning.text-center
-          p {{ item.senderId }}
-          p {{ item.value }}
-      {% endfor %}
+  .tab-content
+    {% for item in i_am_from %}
+    .col-md-4.lend(onclick="update_iou('{{ item.lendTo }}')")
+      .bg-primary.text-center
+        p {{ item.lendTo }} {{ _("owe me") }}
+        p {{ item.value }}
+    {% endfor %}
+    {% for item in i_am_to %}
+    .col-md-4.borrow(onclick="update_iou('{{ item.borrowFrom }}')")
+      .bg-info.text-center
+        p {{ _("I owe") }} {{ item.borrowFrom }}
+        p {{ item.value }}
+    {% endfor %}
+    {% for item in confirm_list %}
+    .col-md-4.event(onclick="confirm_iou('{{ item.id }}')")
+      .bg-warning.text-center
+        p {{ item.senderId }}
+        p {{ item.value }}
+    {% endfor %}
 
   .modal.fade#iou-modal
     .modal-dialog

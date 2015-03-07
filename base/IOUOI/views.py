@@ -21,7 +21,7 @@ def index(request):
     # Get confirm event list
     confirm_list = my_obj.eventQueueReceiver_set.all()
 
-    return render(request, "dashboard.jade", {
+    return render(request, "iouoi/dashboard.jade", {
         'i_am_from': i_am_from,
         'i_am_to': i_am_to,
         'confirm_list': confirm_list,
