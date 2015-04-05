@@ -1,11 +1,14 @@
 extends site_base.html
 | {% load pipeline %}
+| {% load staticfiles %}
 
 block head_title
   | {{ _("Dashboard") }}
 
 block extra_style
   {% stylesheet "iouoi" %}
+  link(href='{% static "iouoi/css/iouoi.css" %}', rel='stylesheet')
+  
 
 block extra_script
   {% javascript "iouoi" %}
@@ -24,19 +27,19 @@ block body
   .tab-content
     {% for item in i_am_from %}
     .col-md-4.lend(onclick="update_iou('{{ item.lendTo }}')")
-      .bg-primary.text-center
+      .ioublock-out.text-center
         p {{ item.lendTo }} {{ _("owe me") }}
         p {{ item.value }}
     {% endfor %}
     {% for item in i_am_to %}
     .col-md-4.borrow(onclick="update_iou('{{ item.borrowFrom }}')")
-      .bg-info.text-center
+      .ioublock-in.text-center
         p {{ _("I owe") }} {{ item.borrowFrom }}
         p {{ item.value }}
     {% endfor %}
     {% for item in confirm_list %}
     .col-md-4.event(onclick="confirm_iou('{{ item.id }}')")
-      .bg-warning.text-center
+      .ioublock-confirm.text-center
         p {{ item.senderId }}
         p {{ item.value }}
     {% endfor %}

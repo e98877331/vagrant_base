@@ -150,7 +150,7 @@ PIPELINE_JS = {
     },
     'iouoi': {
         'source_filenames': (
-            'js/iouoi/iouoi.js',
+            'iouoi/js/iouoi.js',
         ),
         'output_filename': 'js/iouoi.js',
     },

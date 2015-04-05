@@ -27,7 +27,7 @@ def index(request):
         'confirm_list': confirm_list,
     })
 
-
+# request accept
 @login_required
 def event_actions(request):
     """"""
@@ -46,6 +46,7 @@ def event_actions(request):
     return redirect('iou:home')
 
 
+# new request
 @login_required
 @csrf_protect
 def iou_update(request):

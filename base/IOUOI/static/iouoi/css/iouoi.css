@@ -1,0 +1,28 @@
+.ioublock-out, .ioublock-in, .ioublock-confirm
+{
+    margin:  20px 20px;
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+    height: 80px;
+    background-color: white;
+    box-shadow: 5px 5px 25px 1px rgba(50, 50, 50, 0.7);
+}
+.ioublock-out
+{
+    background-color: #5cb85c;
+}
+
+.ioublock-in
+{
+    background-color: #d9534f;
+}
+
+.ioublock-confirm
+{
+    background-color: #f0ad4e;
+}
+.cyy
+{
+    background-color: red;
+}
