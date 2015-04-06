@@ -24,26 +24,35 @@ def index(request):
     return render(request, "iouoi/dashboard.jade", {
         'i_am_from': i_am_from,
         'i_am_to': i_am_to,
-        'confirm_list': confirm_list,
+        'confirm_list': confirm_list
     })
 
 # request accept
 @login_required
 def event_actions(request):
     """"""
-    # get user name from request
-    event_obj = EventQueue.objects.get(pk=request.POST['event_id'])
 
-    action = 'confirm' if 'confirm' in request.POST else 'deny'
-    # Call api
-    if action == 'confirm':
-        event_obj.accept()
-    elif action == 'deny':
-        event_obj.deny()
-    else:
-        raise Exception("Wrong method, should be 'confirm' or 'deny'")
+    if request.method =='GET':
+        my_obj = request.user
+        confirm_list = my_obj.eventQueueReceiver_set.all()
+        return render(request, "iouoi/confirmlist.jade", {
+            'confirm_list': confirm_list
+        })
 
-    return redirect('iou:home')
+    elif request.method =='POST':
+        # get user name from request
+        event_obj = EventQueue.objects.get(pk=request.POST['event_id'])
+
+        action = 'confirm' if 'confirm' in request.POST else 'deny'
+        # Call api
+        if action == 'confirm':
+            event_obj.accept()
+        elif action == 'deny':
+            event_obj.deny()
+        else:
+            raise Exception("Wrong method, should be 'confirm' or 'deny'")
+
+        return redirect('iou:home')
 
 
 # new request

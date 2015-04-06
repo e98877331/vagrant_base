@@ -3,7 +3,7 @@ extends site_base.html
 | {% load staticfiles %}
 
 block head_title
-  | {{ _("Dashboard") }}
+  | {{ _("ConfirmList") }}
 
 block extra_style
   {% stylesheet "iouoi" %}
@@ -18,32 +18,24 @@ block nav
     li
       a(style="cursor: pointer;", onClick="update_iou()")
         span.glyphicon.glyphicon-plus(aria-hidden="true")
-    li
-      a(href='{% url "iou:event_actions" %}')
+    li.active
+      a(href='{% url "iou:home" %}')
         span.glyphicon.glyphicon-envelope
         span.badge {{ confirm_list | length }}
 
 block body
   .page-header
-    h1 Overall
-        
+    h1 New Events
+  
   .tab-content
-    {% if not i_am_from and not i_am_to%}
-    h2.tip no data now
-    {%else%}
-    {% for item in i_am_from %}
-    .col-md-4.lend(onclick="update_iou('{{ item.lendTo }}')")
-      .ioublock-out.text-center
-        p {{ item.lendTo }} {{ _("owe me") }}
+    {% for item in confirm_list %}
+    .col-md-4.event(onclick="confirm_iou('{{ item.id }}')")
+      .ioublock-confirm.text-center
+        p {{ item.senderId }}
         p {{ item.value }}
+    {% empty %}
+    h2.tip no events now
     {% endfor %}
-    {% for item in i_am_to %}
-    .col-md-4.borrow(onclick="update_iou('{{ item.borrowFrom }}')")
-      .ioublock-in.text-center
-        p {{ _("I owe") }} {{ item.borrowFrom }}
-        p {{ item.value }}
-    {% endfor %}
-    {% endif %}
 
   .modal.fade#iou-modal
     .modal-dialog
